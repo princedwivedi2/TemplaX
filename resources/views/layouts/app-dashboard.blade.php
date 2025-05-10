@@ -7,528 +7,225 @@
 
     <title>{{ config('app.name', 'TemplaX') }} - @yield('title', 'Dashboard')</title>
 
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Styles -->
+    <!-- Custom styles -->
     <style>
         :root {
-            --primary-color: #3490dc;
-            --primary-hover: #2779bd;
-            --secondary-color: #f6993f;
-            --secondary-hover: #e68a2e;
-            --success-color: #38c172;
-            --danger-color: #e3342f;
-            --warning-color: #ffed4a;
-            --info-color: #6cb2eb;
-            --dark-color: #343a40;
-            --light-color: #f8f9fa;
-            --gray-color: #6c757d;
-            --gray-light-color: #f1f3f5;
-            --border-color: #dee2e6;
-            --text-color: #333;
-            --text-muted: #6c757d;
-            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s ease;
-            --border-radius: 0.375rem;
             --sidebar-width: 250px;
-            --header-height: 60px;
-            --sidebar-collapsed-width: 70px;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            --sidebar-bg: #212529;
+            --sidebar-color: #fff;
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #0dcaf0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --body-bg: #f8f9fa;
+            --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --transition-speed: 0.3s;
+            --navbar-height: 56px;
         }
 
         body {
             font-family: 'Nunito', sans-serif;
-            background-color: #f5f8fa;
-            color: var(--text-color);
-            line-height: 1.6;
-            min-height: 100vh;
+            background-color: var(--body-bg);
+            overflow-x: hidden;
+            padding-top: var(--navbar-height); /* For fixed navbar */
         }
 
-        /* Dashboard Layout */
-        .dashboard-container {
-            display: flex;
-            min-height: 100vh;
-            position: relative;
-        }
-
-        /* Sidebar */
+        /* Sidebar Styles */
         .sidebar {
             width: var(--sidebar-width);
-            background-color: var(--dark-color);
-            color: white;
             height: 100vh;
             position: fixed;
             left: 0;
-            top: 0;
-            z-index: 100;
-            transition: var(--transition);
+            top: var(--navbar-height); /* Below fixed navbar */
+            padding: 0;
+            z-index: 1030;
+            transition: all var(--transition-speed);
             display: flex;
             flex-direction: column;
+            height: calc(100vh - var(--navbar-height));
             overflow-y: auto;
         }
 
-        .sidebar-header {
-            padding: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .logo-icon {
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: white;
-            color: var(--primary-color);
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .logo-text {
-            font-size: 1.25rem;
-            font-weight: 700;
-            white-space: nowrap;
-            overflow: hidden;
-            transition: var(--transition);
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 1rem 0;
-        }
-
-        .sidebar-nav ul {
-            list-style: none;
-        }
-
-        .nav-section {
-            margin-bottom: 1rem;
-        }
-
-        .nav-section-title {
-            padding: 0.5rem 1.5rem;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.5);
-            letter-spacing: 1px;
-        }
-
-        .sidebar-nav li {
+        .sidebar .nav-link {
+            padding: 0.8rem 1rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
             margin-bottom: 0.25rem;
+            transition: all var(--transition-speed);
         }
 
-        .sidebar-nav a {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1.5rem;
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-            transition: var(--transition);
-            gap: 0.75rem;
-        }
-
-        .sidebar-nav a:hover,
-        .sidebar-nav li.active a {
+        .sidebar .nav-link:hover {
             background-color: rgba(255, 255, 255, 0.1);
-            color: white;
         }
 
-        .sidebar-nav .icon {
-            font-size: 1.25rem;
-            min-width: 1.5rem;
-            text-align: center;
-        }
-
-        .sidebar-footer {
-            padding: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
+        .sidebar .nav-link.active {
             background-color: var(--primary-color);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
         }
 
-        .user-details {
-            overflow: hidden;
-        }
-
-        .user-name {
-            font-weight: 600;
-            font-size: 0.9rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .user-role {
+        .nav-header {
             font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 0.05rem;
+            font-weight: 700;
+            opacity: 0.6;
         }
 
-        .btn-logout {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            width: 100%;
-            padding: 0.75rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: rgba(255, 255, 255, 0.7);
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 0.9rem;
-            border-radius: var(--border-radius);
-        }
-
-        .btn-logout:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-
-        /* Main Content */
+        /* Main Content Styles */
         .main-content {
-            flex: 1;
             margin-left: var(--sidebar-width);
-            transition: var(--transition);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            min-height: calc(100vh - var(--navbar-height));
+            transition: all var(--transition-speed);
+            background-color: var(--body-bg);
+            padding-top: 1rem;
         }
 
-        /* Header */
-        .dashboard-header {
-            height: var(--header-height);
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            padding: 0 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 99;
+        /* Card Styles */
+        .card {
+            transition: all var(--transition-speed);
         }
 
-        .page-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--dark-color);
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
 
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .toggle-sidebar {
-            display: none;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            width: 30px;
-            height: 30px;
-            position: relative;
-        }
-
-        .toggle-sidebar span {
-            display: block;
-            width: 100%;
-            height: 2px;
-            background-color: var(--dark-color);
-            position: absolute;
-            left: 0;
-            transition: var(--transition);
-        }
-
-        .toggle-sidebar span:nth-child(1) {
-            top: 8px;
-        }
-
-        .toggle-sidebar span:nth-child(2) {
-            top: 14px;
-        }
-
-        .toggle-sidebar span:nth-child(3) {
-            top: 20px;
-        }
-
-        .header-user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .header-user-name {
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .header-user-role {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        /* Dashboard Content */
-        .dashboard-content {
-            flex: 1;
-            padding: 1.5rem;
-        }
-
-        /* Alert */
-        .alert {
-            padding: 1rem;
-            border-radius: var(--border-radius);
-            margin-bottom: 1.5rem;
-        }
-
-        .alert-success {
-            background-color: rgba(56, 193, 114, 0.1);
-            border: 1px solid rgba(56, 193, 114, 0.2);
-            color: var(--success-color);
-        }
-
-        .alert-danger {
-            background-color: rgba(227, 52, 47, 0.1);
-            border: 1px solid rgba(227, 52, 47, 0.2);
-            color: var(--danger-color);
-        }
-
-        /* Common Components */
-        .btn {
-            display: inline-block;
-            font-weight: 600;
-            text-align: center;
-            white-space: nowrap;
-            vertical-align: middle;
-            user-select: none;
-            border: 1px solid transparent;
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            border-radius: var(--border-radius);
-            transition: var(--transition);
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .btn-primary {
-            color: white;
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-            border-color: var(--primary-hover);
-        }
-
-        .btn-secondary {
-            color: white;
-            background-color: var(--secondary-color);
-            border-color: var(--secondary-color);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--secondary-hover);
-            border-color: var(--secondary-hover);
-        }
-
-        .btn-danger {
-            color: white;
-            background-color: var(--danger-color);
-            border-color: var(--danger-color);
-        }
-
-        .btn-danger:hover {
-            background-color: #c82333;
-            border-color: #bd2130;
-        }
-
-        .btn-sm {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8rem;
-        }
-
-        /* Responsive */
+        /* Responsive Adjustments */
         @media (max-width: 992px) {
-            .sidebar {
-                width: var(--sidebar-collapsed-width);
-            }
-
-            .logo-text,
-            .sidebar-nav a span:not(.icon),
-            .nav-section-title,
-            .user-details,
-            .btn-logout span:not(.icon) {
-                display: none;
-            }
-
-            .main-content {
-                margin-left: var(--sidebar-collapsed-width);
-            }
-
-            .sidebar-collapsed .sidebar {
-                width: var(--sidebar-width);
-            }
-
-            .sidebar-collapsed .logo-text,
-            .sidebar-collapsed .sidebar-nav a span:not(.icon),
-            .sidebar-collapsed .nav-section-title,
-            .sidebar-collapsed .user-details,
-            .sidebar-collapsed .btn-logout span:not(.icon) {
-                display: inline-block;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .toggle-sidebar {
-                display: block;
+            :root {
+                --sidebar-width: 0;
             }
 
             .sidebar {
-                left: -100%;
-                width: var(--sidebar-width);
-                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+                margin-left: calc(-1 * 250px);
+                width: 250px;
             }
 
-            .logo-text,
-            .sidebar-nav a span:not(.icon),
-            .nav-section-title,
-            .user-details,
-            .btn-logout span:not(.icon) {
-                display: inline-block;
-            }
-
-            .main-content {
+            .sidebar.show {
                 margin-left: 0;
             }
 
-            .sidebar-collapsed .sidebar {
+            /* Add overlay when sidebar is active */
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: var(--navbar-height);
                 left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 1025;
             }
 
-            .header-user-name,
-            .header-user-role {
-                display: none;
+            .sidebar-overlay.show {
+                display: block;
+            }
+        }
+
+        /* Offcanvas sidebar for mobile */
+        @media (max-width: 767.98px) {
+            .sidebar {
+                width: 100%;
+                max-width: 280px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="dashboard-container" id="dashboardContainer">
+    <div class="d-flex" id="wrapper">
         <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <div class="logo-icon">T</div>
-                    <div class="logo-text">TemplaX</div>
+        <div class="bg-dark text-white sidebar" id="sidebar-wrapper">
+            <div class="sidebar-header py-3 px-3 border-bottom border-secondary">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary rounded d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                        <span class="fw-bold">T</span>
+                    </div>
+                    <h4 class="m-0 text-white">TemplaX</h4>
                 </div>
             </div>
-            <nav class="sidebar-nav">
-                <ul>
-                    <li class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                        <a href="{{ route('dashboard') }}">
-                            <span class="icon">📊</span>
-                            <span>Dashboard</span>
+
+            <div class="px-3 py-2">
+                <ul class="nav nav-pills flex-column">
+                    <li class="nav-item">
+                        <a href="{{ route('dashboard') }}" class="nav-link text-white {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
                         </a>
                     </li>
 
-                    <div class="nav-section">
-                        <div class="nav-section-title">Cards</div>
-                        <li class="{{ request()->routeIs('cards.index') ? 'active' : '' }}">
-                            <a href="{{ route('dashboard') }}">
-                                <span class="icon">📇</span>
-                                <span>My Cards</span>
-                            </a>
-                        </li>
-                        <li class="{{ request()->routeIs('cards.create') ? 'active' : '' }}">
-                            <a href="{{ route('dashboard') }}">
-                                <span class="icon">✨</span>
-                                <span>Create Card</span>
-                            </a>
-                        </li>
-                    </div>
+                    @if(!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('super-admin'))
+                    <li class="nav-item mt-2">
+                        <span class="nav-header text-uppercase text-muted small d-block py-2">Cards</span>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('cards.create') }}" class="nav-link text-white {{ request()->routeIs('cards.create') ? 'active' : '' }}">
+                            <i class="bi bi-plus-circle me-2"></i> Create Card
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('cards.index') }}" class="nav-link text-white {{ request()->routeIs('cards.index') ? 'active' : '' }}">
+                            <i class="bi bi-credit-card-2-front me-2"></i> My Cards
+                        </a>
+                    </li>
+                    @endif
 
                     @if(Auth::user()->hasRole('admin'))
-                    <div class="nav-section">
-                        <div class="nav-section-title">Admin</div>
-                        <li class="{{ request()->routeIs('templates.index') ? 'active' : '' }}">
-                            <a href="{{ route('dashboard') }}">
-                                <span class="icon">🖼️</span>
-                                <span>Templates</span>
-                            </a>
-                        </li>
-                        <li class="{{ request()->routeIs('cards.approval') ? 'active' : '' }}">
-                            <a href="{{ route('dashboard') }}">
-                                <span class="icon">✅</span>
-                                <span>Approvals</span>
-                            </a>
-                        </li>
-                        <li class="{{ request()->routeIs('users.index') ? 'active' : '' }}">
-                            <a href="{{ route('dashboard') }}">
-                                <span class="icon">👥</span>
-                                <span>Users</span>
-                            </a>
-                        </li>
-                    </div>
+                    <li class="nav-item mt-2">
+                        <span class="nav-header text-uppercase text-muted small d-block py-2">Admin</span>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('templates.index') }}" class="nav-link text-white {{ request()->routeIs('templates.index') ? 'active' : '' }}">
+                            <i class="bi bi-grid-3x3 me-2"></i> Templates
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('cards.approval') }}" class="nav-link text-white {{ request()->routeIs('cards.approval') ? 'active' : '' }}">
+                            <i class="bi bi-check-circle me-2"></i> Approvals
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('users.index') }}" class="nav-link text-white {{ request()->routeIs('users.index') ? 'active' : '' }}">
+                            <i class="bi bi-people me-2"></i> Users
+                        </a>
+                    </li>
                     @endif
 
                     @if(Auth::user()->hasRole('super-admin'))
-                    <div class="nav-section">
-                        <div class="nav-section-title">Super Admin</div>
-                        <li class="{{ request()->routeIs('admins.index') ? 'active' : '' }}">
-                            <a href="{{ route('dashboard') }}">
-                                <span class="icon">👑</span>
-                                <span>Manage Admins</span>
-                            </a>
-                        </li>
-                        <li class="{{ request()->routeIs('settings.index') ? 'active' : '' }}">
-                            <a href="{{ route('dashboard') }}">
-                                <span class="icon">⚙️</span>
-                                <span>Settings</span>
-                            </a>
-                        </li>
-                    </div>
+                    <li class="nav-item mt-2">
+                        <span class="nav-header text-uppercase text-muted small d-block py-2">Super Admin</span>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admins.index') }}" class="nav-link text-white {{ request()->routeIs('admins.index') ? 'active' : '' }}">
+                            <i class="bi bi-person-badge me-2"></i> Manage Admins
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('settings.index') }}" class="nav-link text-white {{ request()->routeIs('settings.index') ? 'active' : '' }}">
+                            <i class="bi bi-gear me-2"></i> Settings
+                        </a>
+                    </li>
                     @endif
                 </ul>
-            </nav>
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar">
+            </div>
+
+            <div class="mt-auto p-3 border-top border-secondary">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
                         {{ substr(Auth::user()->name, 0, 1) }}
                     </div>
-                    <div class="user-details">
-                        <div class="user-name">{{ Auth::user()->name }}</div>
-                        <div class="user-role">
+                    <div>
+                        <div class="fw-bold">{{ Auth::user()->name }}</div>
+                        <small class="text-muted">
                             @if(Auth::user()->hasRole('super-admin'))
                                 Super Admin
                             @elseif(Auth::user()->hasRole('admin'))
@@ -536,76 +233,264 @@
                             @else
                                 User
                             @endif
-                        </div>
+                        </small>
                     </div>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="btn-logout">
-                        <span class="icon">🚪</span>
-                        <span>Logout</span>
+                    <button type="submit" class="btn btn-outline-light w-100">
+                        <i class="bi bi-box-arrow-right me-1"></i> Logout
                     </button>
                 </form>
             </div>
-        </aside>
+        </div>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Header -->
-            <header class="dashboard-header">
-                <h1 class="page-title">@yield('title', 'Dashboard')</h1>
-                <div class="header-actions">
-                    <button class="toggle-sidebar" id="toggleSidebar">
-                        <span></span>
-                        <span></span>
-                        <span></span>
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="main-content">
+            <!-- Fixed Top Navigation -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+                <div class="container-fluid">
+                    <button class="btn btn-sm btn-primary" id="sidebarToggle">
+                        <i class="bi bi-list"></i>
                     </button>
-                    <div class="header-user-info">
-                        <div class="header-user-name">{{ Auth::user()->name }}</div>
-                        <div class="header-user-role">
-                            @if(Auth::user()->hasRole('super-admin'))
-                                Super Admin
-                            @elseif(Auth::user()->hasRole('admin'))
-                                Admin
-                            @else
-                                User
-                            @endif
-                        </div>
+                    <h5 class="navbar-brand mb-0 ms-3 fw-bold">@yield('title', 'Dashboard')</h5>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav ms-auto align-items-center">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button"
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                   <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                        {{ substr(Auth::user()->name, 0, 1) }}
+                                    </div>
+                                    <span>{{ Auth::user()->name }}</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="navbarDropdown">
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profile</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="POST" action="{{ route('logout') }}">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
                     </div>
                 </div>
-            </header>
+            </nav>
 
-            <!-- Flash Messages -->
-            @if (session('status'))
-                <div class="alert alert-success">
-                    {{ session('status') }}
-                </div>
-            @endif
+            <!-- Sidebar Overlay (for mobile) -->
+            <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-            @if (session('error'))
-                <div class="alert alert-danger">
-                    {{ session('error') }}
-                </div>
-            @endif
+            <!-- Flash Messages Container (hidden, used for SweetAlert2) -->
+            <div class="d-none">
+                @if (session('success'))
+                    <div id="success-message" data-message="{{ session('success') }}"></div>
+                @endif
 
-            <!-- Dashboard Content -->
-            <div class="dashboard-content">
+                @if (session('error'))
+                    <div id="error-message" data-message="{{ session('error') }}"></div>
+                @endif
+
+                @if (session('warning'))
+                    <div id="warning-message" data-message="{{ session('warning') }}"></div>
+                @endif
+
+                @if (session('info'))
+                    <div id="info-message" data-message="{{ session('info') }}"></div>
+                @endif
+
+                @if (session('status'))
+                    <div id="status-message" data-message="{{ session('status') }}"></div>
+                @endif
+            </div>
+
+            <div class="container-fluid">
+
+                <!-- Page Content -->
                 @yield('content')
             </div>
-        </main>
+        </div>
     </div>
 
-    <script>
-        // Simple JavaScript for sidebar toggle
-        document.addEventListener('DOMContentLoaded', function() {
-            const toggleBtn = document.getElementById('toggleSidebar');
-            const dashboard = document.getElementById('dashboardContainer');
+    <!-- Bootstrap 5 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', function() {
-                    dashboard.classList.toggle('sidebar-collapsed');
+    <!-- SweetAlert2 JS via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
+
+    <!-- Dashboard Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar Toggle
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar-wrapper');
+            const pageContent = document.getElementById('page-content-wrapper');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const wrapper = document.getElementById('wrapper');
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    sidebar.classList.toggle('show');
+                    sidebarOverlay.classList.toggle('show');
+
+                    // For larger screens
+                    if (window.innerWidth >= 992) {
+                        if (getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width') === '250px') {
+                            document.documentElement.style.setProperty('--sidebar-width', '0px');
+                        } else {
+                            document.documentElement.style.setProperty('--sidebar-width', '250px');
+                        }
+                    }
                 });
             }
+
+            // Close sidebar when clicking on overlay
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                });
+            }
+
+            // Handle responsive behavior
+            function handleResize() {
+                if (window.innerWidth < 992) {
+                    document.documentElement.style.setProperty('--sidebar-width', '0px');
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                } else {
+                    document.documentElement.style.setProperty('--sidebar-width', '250px');
+                }
+            }
+
+            // Initial call and event listener
+            handleResize();
+            window.addEventListener('resize', handleResize);
+
+            // Add hover effect to cards
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.boxShadow = '0 0.5rem 1rem rgba(0, 0, 0, 0.15)';
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 0.125rem 0.25rem rgba(0, 0, 0, 0.075)';
+                });
+            });
+
+            // SweetAlert2 Flash Messages
+            const successMessage = document.getElementById('success-message');
+            const errorMessage = document.getElementById('error-message');
+            const warningMessage = document.getElementById('warning-message');
+            const infoMessage = document.getElementById('info-message');
+            const statusMessage = document.getElementById('status-message');
+
+            if (successMessage) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: successMessage.dataset.message,
+                    icon: 'success',
+                    confirmButtonColor: '#0d6efd',
+                    confirmButtonText: 'OK'
+                });
+            }
+
+            if (errorMessage) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: errorMessage.dataset.message,
+                    icon: 'error',
+                    confirmButtonColor: '#dc3545',
+                    confirmButtonText: 'OK'
+                });
+            }
+
+            if (warningMessage) {
+                Swal.fire({
+                    title: 'Warning!',
+                    text: warningMessage.dataset.message,
+                    icon: 'warning',
+                    confirmButtonColor: '#ffc107',
+                    confirmButtonText: 'OK'
+                });
+            }
+
+            if (infoMessage) {
+                Swal.fire({
+                    title: 'Information',
+                    text: infoMessage.dataset.message,
+                    icon: 'info',
+                    confirmButtonColor: '#0dcaf0',
+                    confirmButtonText: 'OK'
+                });
+            }
+
+            if (statusMessage) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: statusMessage.dataset.message,
+                    icon: 'success',
+                    confirmButtonColor: '#0d6efd',
+                    confirmButtonText: 'OK'
+                });
+            }
+
+            // Toast notification for logout
+            const logoutButtons = document.querySelectorAll('button[type="submit"][form*="logout"]');
+            logoutButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const form = this.closest('form');
+
+                    Swal.fire({
+                        title: 'Logging out',
+                        text: 'Are you sure you want to log out?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Yes, log me out'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Show toast notification
+                            const Toast = Swal.mixin({
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
+                                didOpen: (toast) => {
+                                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                                }
+                            });
+
+                            Toast.fire({
+                                icon: 'success',
+                                title: 'Logging out...'
+                            });
+
+                            // Submit the form after a short delay
+                            setTimeout(() => {
+                                form.submit();
+                            }, 1000);
+                        }
+                    });
+                });
+            });
         });
     </script>
 </body>
