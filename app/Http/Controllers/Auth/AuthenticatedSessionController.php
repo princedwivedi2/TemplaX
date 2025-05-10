@@ -32,7 +32,18 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(RouteServiceProvider::HOME);
+        // Get the user's actual role for the welcome message
+        $user = auth()->user();
+        $roleName = 'User';
+
+        if ($user->hasRole('super-admin')) {
+            $roleName = 'Super Admin';
+        } elseif ($user->hasRole('admin')) {
+            $roleName = 'Admin';
+        }
+
+        return redirect()->intended(RouteServiceProvider::HOME)
+            ->with('success', "Welcome! You are now logged in as {$roleName}.");
     }
 
     /**
@@ -49,6 +60,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/')->with('success', 'You have been successfully logged out.');
     }
 }
