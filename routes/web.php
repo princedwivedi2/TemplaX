@@ -109,7 +109,20 @@ Route::middleware(['auth'])->group(function () {
 
     // Super Admin routes
     Route::prefix('super-admin')->middleware('role:super-admin')->group(function () {
-        Route::get('/admins', function () {
+        // User Management Routes
+        Route::get('/users', [App\Http\Controllers\UserManagementController::class, 'index'])->name('admin.users.index');
+        Route::get('/admins', [App\Http\Controllers\UserManagementController::class, 'admins'])->name('admin.users.admins');
+
+        // AJAX Routes for User Management
+        Route::get('/users/data', [App\Http\Controllers\UserManagementController::class, 'getUsers'])->name('admin.users.data');
+        Route::get('/admins/data', [App\Http\Controllers\UserManagementController::class, 'getAdmins'])->name('admin.admins.data');
+        Route::post('/users', [App\Http\Controllers\UserManagementController::class, 'store'])->name('admin.users.store');
+        Route::get('/users/{id}', [App\Http\Controllers\UserManagementController::class, 'show'])->name('admin.users.show');
+        Route::put('/users/{id}', [App\Http\Controllers\UserManagementController::class, 'update'])->name('admin.users.update');
+        Route::delete('/users/{id}', [App\Http\Controllers\UserManagementController::class, 'destroy'])->name('admin.users.destroy');
+
+        // Legacy routes (to be updated)
+        Route::get('/admins-old', function () {
             return view('dashboard.index', ['activeTab' => 'admins']);
         })->name('admins.index');
 

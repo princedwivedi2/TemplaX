@@ -31,7 +31,8 @@ class LoginRequest extends FormRequest
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
-            'role' => ['required', 'string', 'in:super-admin,admin,user'],
+            'organization' => ['required', 'string', 'max:255'],
+            'role' => ['required', 'string', 'in:admin,user'],
         ];
     }
 
@@ -64,6 +65,17 @@ class LoginRequest extends FormRequest
 
             throw ValidationException::withMessages([
                 'role' => 'You do not have access with the selected role.',
+            ]);
+        }
+
+        // Check if the organization matches
+        if ($user->organization !== $this->input('organization')) {
+            Auth::logout();
+
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'organization' => 'The organization name does not match our records.',
             ]);
         }
 

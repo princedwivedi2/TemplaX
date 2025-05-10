@@ -205,7 +205,12 @@
                         <span class="nav-header text-uppercase text-muted small d-block py-2">Super Admin</span>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ route('admins.index') }}" class="nav-link text-white {{ request()->routeIs('admins.index') ? 'active' : '' }}">
+                        <a href="{{ route('admin.users.index') }}" class="nav-link text-white {{ request()->routeIs('admin.users.index') ? 'active' : '' }}">
+                            <i class="bi bi-people me-2"></i> Manage Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admin.users.admins') }}" class="nav-link text-white {{ request()->routeIs('admin.users.admins') ? 'active' : '' }}">
                             <i class="bi bi-person-badge me-2"></i> Manage Admins
                         </a>
                     </li>
@@ -321,11 +326,28 @@
         </div>
     </div>
 
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <!-- Bootstrap 5 JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- SweetAlert2 JS via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
+
+    <!-- User Management JS -->
+    @if(request()->routeIs('admin.users.*') || request()->routeIs('admin.users.admins'))
+    <script>
+        // Define URLs for AJAX requests
+        const adminUsersDataUrl = "{{ route('admin.users.data') }}";
+        const adminAdminsDataUrl = "{{ route('admin.admins.data') }}";
+        const adminUsersShowUrl = "{{ route('admin.users.show', ['id' => '__ID__']) }}";
+        const adminUsersUpdateUrl = "{{ route('admin.users.update', ['id' => '__ID__']) }}";
+        const adminUsersDeleteUrl = "{{ route('admin.users.destroy', ['id' => '__ID__']) }}";
+        const csrfToken = "{{ csrf_token() }}";
+    </script>
+    <script src="{{ asset('js/user-management.js') }}"></script>
+    @endif
 
     <!-- Dashboard Scripts -->
     <script>
