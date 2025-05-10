@@ -307,37 +307,9 @@
                         </div>
                     </div>
 
-                    <!-- Organization Name -->
-                    <div class="mb-3">
-                        <label for="organization" class="form-label">Organization Name</label>
-                        <div class="position-relative">
-                            <span class="input-icon">
-                                <i class="bi bi-building"></i>
-                            </span>
-                            <input type="text" class="form-control @error('organization') is-invalid @enderror" id="organization" name="organization" value="{{ old('organization') }}" placeholder="Enter your organization name" required>
-                            @error('organization')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <!-- Login As (Role) -->
-                    <div class="mb-3">
-                        <label for="role" class="form-label">Login As</label>
-                        <div class="position-relative">
-                            <span class="input-icon">
-                                <i class="bi bi-person-badge"></i>
-                            </span>
-                            <select class="form-select @error('role') is-invalid @enderror" id="role" name="role" required>
-                                <option value="" selected disabled>Select a role</option>
-                                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                                <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>User</option>
-                            </select>
-                            @error('role')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
+                    <!-- Hidden fields for organization and role -->
+                    <input type="hidden" name="organization" value="organization">
+                    <input type="hidden" name="role" value="role">
 
                     <!-- Remember Me and Forgot Password -->
                     <div class="d-flex justify-content-between align-items-center mb-4">

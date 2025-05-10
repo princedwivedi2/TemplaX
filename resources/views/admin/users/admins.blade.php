@@ -174,10 +174,264 @@
 
 @section('scripts')
 <script>
+    // Function to load admins data
+    function loadAdmins(searchTerm = '') {
+        // Show loading indicator
+        $('#adminsTable tbody').html('<tr><td colspan="6" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>');
+
+        // Send AJAX request
+        $.ajax({
+            url: adminAdminsDataUrl,
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    let admins = response.data;
+                    let tableRows = '';
+
+                    // Filter by search term if provided
+                    if (searchTerm) {
+                        const term = searchTerm.toLowerCase();
+                        admins = admins.filter(admin =>
+                            admin.name.toLowerCase().includes(term) ||
+                            admin.email.toLowerCase().includes(term) ||
+                            (admin.organization && admin.organization.toLowerCase().includes(term))
+                        );
+                    }
+
+                    // Generate table rows
+                    if (admins.length > 0) {
+                        admins.forEach(admin => {
+                            const createdAt = new Date(admin.created_at).toLocaleDateString();
+
+                            tableRows += `
+                                <tr>
+                                    <td>${admin.id}</td>
+                                    <td>${admin.name}</td>
+                                    <td>${admin.email}</td>
+                                    <td>${admin.organization || 'N/A'}</td>
+                                    <td>${createdAt}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info edit-admin-btn" data-id="${admin.id}">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-admin-btn" data-id="${admin.id}" data-name="${admin.name}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        tableRows = '<tr><td colspan="6" class="text-center">No administrators found</td></tr>';
+                    }
+
+                    // Update table
+                    $('#adminsTable tbody').html(tableRows);
+
+                    // Initialize edit and delete buttons
+                    initializeAdminButtons();
+                } else {
+                    showAlert('danger', 'Failed to load administrators data.');
+                }
+            },
+            error: function() {
+                $('#adminsTable tbody').html('<tr><td colspan="6" class="text-center text-danger">Error loading administrators data</td></tr>');
+                showAlert('danger', 'An error occurred while loading administrators data.');
+            }
+        });
+    }
+
+    // Function to show alert message
+    function showAlert(type, message) {
+        const alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+
+        $('#alertContainer').html(alertHtml);
+
+        // Auto-dismiss after 5 seconds
+        setTimeout(function() {
+            $('.alert').alert('close');
+        }, 5000);
+    }
+
+    // Function to initialize admin buttons
+    function initializeAdminButtons() {
+        // Edit admin button
+        $('.edit-admin-btn').on('click', function() {
+            const userId = $(this).data('id');
+
+            // Fetch admin data
+            $.ajax({
+                url: adminUsersShowUrl.replace('__ID__', userId),
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        const admin = response.data;
+
+                        // Populate form fields
+                        $('#edit_admin_id').val(admin.id);
+                        $('#edit_admin_name').val(admin.name);
+                        $('#edit_admin_email').val(admin.email);
+                        $('#edit_admin_organization').val(admin.organization);
+
+                        // Clear password field
+                        $('#edit_admin_password').val('');
+
+                        // Show modal
+                        $('#editAdminModal').modal('show');
+                    } else {
+                        showAlert('danger', 'Failed to load admin data.');
+                    }
+                },
+                error: function() {
+                    showAlert('danger', 'An error occurred while loading admin data.');
+                }
+            });
+        });
+
+        // Delete admin button
+        $('.delete-admin-btn').on('click', function() {
+            const userId = $(this).data('id');
+            const userName = $(this).data('name');
+
+            // Populate delete modal
+            $('#delete_admin_id').val(userId);
+            $('#deleteAdminName').text(userName);
+
+            // Show modal
+            $('#deleteAdminModal').modal('show');
+        });
+
+        // Update admin button
+        $('#updateAdminBtn').on('click', function() {
+            const btn = $(this);
+            const spinner = btn.find('.spinner-border');
+            const userId = $('#edit_admin_id').val();
+
+            // Reset previous errors
+            $('.is-invalid').removeClass('is-invalid');
+
+            // Show loading spinner
+            btn.prop('disabled', true);
+            spinner.removeClass('d-none');
+
+            // Get form data
+            const formData = {
+                name: $('#edit_admin_name').val(),
+                email: $('#edit_admin_email').val(),
+                organization: $('#edit_admin_organization').val(),
+                role: $('#edit_admin_role').val(),
+                password: $('#edit_admin_password').val(),
+                _token: csrfToken,
+                _method: 'PUT'
+            };
+
+            // Send AJAX request
+            $.ajax({
+                url: adminUsersUpdateUrl.replace('__ID__', userId),
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    // Hide loading spinner
+                    btn.prop('disabled', false);
+                    spinner.addClass('d-none');
+
+                    // Close modal and show success message
+                    $('#editAdminModal').modal('hide');
+                    showAlert('success', response.message);
+
+                    // Reload admins table
+                    loadAdmins();
+                },
+                error: function(xhr) {
+                    // Hide loading spinner
+                    btn.prop('disabled', false);
+                    spinner.addClass('d-none');
+
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON.errors;
+
+                        // Display validation errors
+                        if (errors.name) {
+                            $('#edit_admin_name').addClass('is-invalid');
+                            $('#editAdminNameError').text(errors.name[0]);
+                        }
+                        if (errors.email) {
+                            $('#edit_admin_email').addClass('is-invalid');
+                            $('#editAdminEmailError').text(errors.email[0]);
+                        }
+                        if (errors.organization) {
+                            $('#edit_admin_organization').addClass('is-invalid');
+                            $('#editAdminOrganizationError').text(errors.organization[0]);
+                        }
+                        if (errors.password) {
+                            $('#edit_admin_password').addClass('is-invalid');
+                            $('#editAdminPasswordError').text(errors.password[0]);
+                        }
+                    } else {
+                        showAlert('danger', 'An error occurred while updating the admin.');
+                    }
+                }
+            });
+        });
+
+        // Confirm delete button
+        $('#confirmDeleteAdminBtn').on('click', function() {
+            const btn = $(this);
+            const spinner = btn.find('.spinner-border');
+            const userId = $('#delete_admin_id').val();
+
+            // Show loading spinner
+            btn.prop('disabled', true);
+            spinner.removeClass('d-none');
+
+            // Send AJAX request
+            $.ajax({
+                url: adminUsersDeleteUrl.replace('__ID__', userId),
+                type: 'DELETE',
+                data: {
+                    _token: csrfToken
+                },
+                success: function(response) {
+                    // Hide loading spinner
+                    btn.prop('disabled', false);
+                    spinner.addClass('d-none');
+
+                    // Close modal and show success message
+                    $('#deleteAdminModal').modal('hide');
+                    showAlert('success', response.message);
+
+                    // Reload admins table
+                    loadAdmins();
+                },
+                error: function(xhr) {
+                    // Hide loading spinner
+                    btn.prop('disabled', false);
+                    spinner.addClass('d-none');
+
+                    // Close modal and show error message
+                    $('#deleteAdminModal').modal('hide');
+
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        showAlert('danger', xhr.responseJSON.message);
+                    } else {
+                        showAlert('danger', 'An error occurred while deleting the admin.');
+                    }
+                }
+            });
+        });
+    }
+
     $(document).ready(function() {
         // Load admins data
         loadAdmins();
-        
+
         // Toggle password visibility
         $('.toggle-password').on('click', function() {
             const passwordInput = $(this).siblings('input');
@@ -185,25 +439,25 @@
             passwordInput.attr('type', type);
             $(this).find('i').toggleClass('bi-eye bi-eye-slash');
         });
-        
+
         // Search functionality
         $('#searchBtn').on('click', function() {
             const searchTerm = $('#adminSearch').val();
             loadAdmins(searchTerm);
         });
-        
+
         // Add admin form submission
         $('#saveAdminBtn').on('click', function() {
             const btn = $(this);
             const spinner = btn.find('.spinner-border');
-            
+
             // Reset previous errors
             $('.is-invalid').removeClass('is-invalid');
-            
+
             // Show loading spinner
             btn.prop('disabled', true);
             spinner.removeClass('d-none');
-            
+
             // Get form data
             const formData = {
                 name: $('#admin_name').val(),
@@ -213,7 +467,7 @@
                 password: $('#admin_password').val(),
                 _token: '{{ csrf_token() }}'
             };
-            
+
             // Send AJAX request
             $.ajax({
                 url: '{{ route("admin.users.store") }}',
@@ -223,14 +477,14 @@
                     // Hide loading spinner
                     btn.prop('disabled', false);
                     spinner.addClass('d-none');
-                    
+
                     // Close modal and show success message
                     $('#addAdminModal').modal('hide');
                     showAlert('success', response.message);
-                    
+
                     // Reset form
                     $('#addAdminForm')[0].reset();
-                    
+
                     // Reload admins table
                     loadAdmins();
                 },
@@ -238,10 +492,10 @@
                     // Hide loading spinner
                     btn.prop('disabled', false);
                     spinner.addClass('d-none');
-                    
+
                     if (xhr.status === 422) {
                         const errors = xhr.responseJSON.errors;
-                        
+
                         // Display validation errors
                         if (errors.name) {
                             $('#admin_name').addClass('is-invalid');

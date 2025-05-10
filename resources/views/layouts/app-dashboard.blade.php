@@ -335,7 +335,7 @@
     <!-- SweetAlert2 JS via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
 
-    <!-- User Management JS -->
+    <!-- User Management JS URLs -->
     @if(request()->routeIs('admin.users.*') || request()->routeIs('admin.users.admins'))
     <script>
         // Define URLs for AJAX requests
@@ -346,7 +346,6 @@
         const adminUsersDeleteUrl = "{{ route('admin.users.destroy', ['id' => '__ID__']) }}";
         const csrfToken = "{{ csrf_token() }}";
     </script>
-    <script src="{{ asset('js/user-management.js') }}"></script>
     @endif
 
     <!-- Dashboard Scripts -->

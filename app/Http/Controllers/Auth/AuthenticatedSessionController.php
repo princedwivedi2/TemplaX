@@ -32,8 +32,15 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $role = $request->input('role');
-        $roleName = ucfirst(str_replace('-', ' ', $role));
+        // Get the user's actual role for the welcome message
+        $user = auth()->user();
+        $roleName = 'User';
+
+        if ($user->hasRole('super-admin')) {
+            $roleName = 'Super Admin';
+        } elseif ($user->hasRole('admin')) {
+            $roleName = 'Admin';
+        }
 
         return redirect()->intended(RouteServiceProvider::HOME)
             ->with('success', "Welcome! You are now logged in as {$roleName}.");

@@ -160,13 +160,24 @@ class UserManagementController extends Controller
     {
         $user = User::findOrFail($id);
 
-        $validator = Validator::make($request->all(), [
+        // Determine if this is a Super Admin update
+        $isSuperAdmin = $request->has('is_super_admin') && $request->is_super_admin === 'true';
+        $wasSuperAdmin = $user->hasRole('super-admin');
+
+        // Build validation rules
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'organization' => ['required', 'string', 'max:255'],
-            'role' => ['required', 'string', Rule::in(['admin', 'user'])],
             'password' => ['nullable', 'string', 'min:8'],
-        ]);
+        ];
+
+        // Only require role for non-Super Admin users
+        if (!$isSuperAdmin) {
+            $rules['role'] = ['required', 'string', Rule::in(['admin', 'user'])];
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return response()->json([
@@ -185,10 +196,18 @@ class UserManagementController extends Controller
 
         $user->save();
 
-        // Update role if changed
-        if (!$user->hasRole($request->role)) {
+        // Handle role changes
+        if ($isSuperAdmin && !$wasSuperAdmin) {
+            // Changing to Super Admin
+            $user->syncRoles(['super-admin']);
+        } else if (!$isSuperAdmin && $wasSuperAdmin) {
+            // Changing from Super Admin to another role
+            $user->syncRoles([$request->role]);
+        } else if (!$isSuperAdmin && !$wasSuperAdmin && !$user->hasRole($request->role)) {
+            // Regular role change
             $user->syncRoles([$request->role]);
         }
+        // If user was and still is Super Admin, no role change needed
 
         return response()->json([
             'success' => true,

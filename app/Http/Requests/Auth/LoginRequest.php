@@ -31,8 +31,6 @@ class LoginRequest extends FormRequest
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
-            'organization' => ['required', 'string', 'max:255'],
-            'role' => ['required', 'string', 'in:admin,user'],
         ];
     }
 
@@ -47,35 +45,12 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        // First attempt to authenticate the user
+        // Attempt to authenticate the user with email and password only
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
-            ]);
-        }
-
-        // Then check if the user has the selected role
-        $user = Auth::user();
-        if (! $user->hasRole($this->input('role'))) {
-            Auth::logout();
-
-            RateLimiter::hit($this->throttleKey());
-
-            throw ValidationException::withMessages([
-                'role' => 'You do not have access with the selected role.',
-            ]);
-        }
-
-        // Check if the organization matches
-        if ($user->organization !== $this->input('organization')) {
-            Auth::logout();
-
-            RateLimiter::hit($this->throttleKey());
-
-            throw ValidationException::withMessages([
-                'organization' => 'The organization name does not match our records.',
             ]);
         }
 
