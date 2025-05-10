@@ -59,23 +59,8 @@
     </div>
 </div>
 
-<!-- Demo Alert -->
-<div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
-    <div class="d-flex align-items-center">
-        <i class="bi bi-info-circle-fill me-2"></i>
-        <div>
-            <strong>Welcome to TemplaX!</strong> This is your business card management dashboard. Use the quick actions above to create and manage your cards.
-        </div>
-    </div>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
 
-<!-- Test SweetAlert Button -->
-<div class="text-center mt-5">
-    <button id="test-sweetalert" class="btn btn-outline-primary">
-        <i class="bi bi-bell me-2"></i> Test SweetAlert Notification
-    </button>
-</div>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

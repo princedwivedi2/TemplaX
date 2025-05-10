@@ -229,8 +229,8 @@
                         {{ substr(Auth::user()->name, 0, 1) }}
                     </div>
                     <div>
-                        <div class="fw-bold">{{ Auth::user()->name }}</div>
-                        <small class="text-muted">
+                        <div class="fw-bold color-white text-size-large">{{ Auth::user()->name }}</div>
+                        <small class="text-white">
                             @if(Auth::user()->hasRole('super-admin'))
                                 Super Admin
                             @elseif(Auth::user()->hasRole('admin'))
