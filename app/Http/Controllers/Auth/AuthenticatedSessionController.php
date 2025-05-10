@@ -32,7 +32,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(RouteServiceProvider::HOME);
+        $role = $request->input('role');
+        $roleName = ucfirst(str_replace('-', ' ', $role));
+
+        return redirect()->intended(RouteServiceProvider::HOME)
+            ->with('success', "Welcome! You are now logged in as {$roleName}.");
     }
 
     /**
@@ -49,6 +53,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/')->with('success', 'You have been successfully logged out.');
     }
 }

@@ -7,129 +7,404 @@
 
     <title>{{ config('app.name', 'TemplaX') }} - Login</title>
 
-    <!-- Fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
+    <!-- Bootstrap 5 CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- SweetAlert2 CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.min.css" rel="stylesheet">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #4e73df;
+            --primary-dark: #3a56b7;
+            --secondary: #858796;
+            --success: #1cc88a;
+            --info: #36b9cc;
+            --warning: #f6c23e;
+            --danger: #e74a3b;
+            --light: #f8f9fc;
+            --dark: #5a5c69;
+            --white: #fff;
+            --body-bg: #f8f9fc;
+            --card-border: #e3e6f0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f8f9fc 0%, #e2e8f0 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #5a5c69;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            text-align: center;
+            padding: 2rem 1.5rem;
+            border-bottom: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+            pointer-events: none;
+        }
+
+        .logo {
+            width: 70px;
+            height: 70px;
+            background-color: var(--white);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0 auto 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control,
+        .form-select {
+            padding-left: 2.5rem;
+            border-radius: 0.5rem;
+            border-color: #e2e8f0;
+            height: 2.8rem;
+            box-shadow: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.15);
+        }
+
+        .input-icon {
+            position: absolute;
+            top: 50%;
+            left: 0.75rem;
+            transform: translateY(-50%);
+            color: var(--secondary);
+            z-index: 2;
+        }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 0.75rem;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--secondary);
+            cursor: pointer;
+            z-index: 2;
+            transition: color 0.2s ease;
+        }
+
+        .password-toggle:hover,
+        .password-toggle:focus {
+            outline: none;
+            color: var(--primary);
+        }
+
+        .btn-login {
+            padding: 0.75rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            background-color: var(--primary);
+            border-color: var(--primary);
+            transition: all 0.2s ease;
+        }
+
+        .btn-login:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .form-check-label {
+            color: var(--secondary);
+            font-size: 0.875rem;
+        }
+
+        .forgot-password {
+            color: var(--secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s ease;
+        }
+
+        .forgot-password:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .register-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .register-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .is-invalid {
+            border-color: var(--danger) !important;
+        }
+
+        .invalid-feedback {
+            color: var(--danger);
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .alert {
+            border-radius: 0.5rem;
+            border: none;
+        }
+
+        .alert-danger {
+            background-color: #fde8e7;
+            color: var(--danger);
+        }
+
+        .alert-success {
+            background-color: #e6f8f3;
+            color: var(--success);
+        }
+
+        @media (max-width: 576px) {
+            .login-container {
+                padding: 10px;
+            }
+
+            .card-body {
+                padding: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="auth-container">
-        <div class="logo-container">
-            <a href="/">
-                <svg viewBox="0 0 316 316" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
-                    <path d="M158 0C70.7 0 0 70.7 0 158s70.7 158 158 158 158-70.7 158-158S245.3 0 158 0zm-35.7 256h-22.1V60h22.1v196zm93.5 0h-22.1v-87.7l-50.2-74.6h27l36.2 58.9 35.4-58.9h26.6l-52.9 74.6V256z"/>
-                </svg>
-            </a>
-        </div>
-
-        <div class="auth-card">
-            <div class="auth-card-header">
-                <h2>TemplaX</h2>
-                <p>Business Card Generator</p>
+    <div class="login-container">
+        <div class="card">
+            <div class="card-header">
+                <div class="logo">T</div>
+                <h3 class="mb-1 fw-bold">TemplaX</h3>
+                <p class="mb-0 opacity-75">Business Card Generator</p>
             </div>
 
-            @if (session('status'))
-                <div class="alert alert-success mb-4">
-                    {{ session('status') }}
-                </div>
-            @endif
+            <div class="card-body">
+                <h4 class="text-center mb-4 fw-bold">Sign In</h4>
 
-            @if ($errors->any())
-                <div class="alert alert-danger mb-4">
-                    <ul style="margin: 0; padding-left: 1rem;">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <form method="POST" action="{{ route('login') }}">
-                @csrf
-
-                <!-- Email Address -->
-                <div class="form-group">
-                    <label for="email" class="form-label form-label-required">Email</label>
-                    <div class="input-with-icon">
-                        <span class="input-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                            </svg>
-                        </span>
-                        <input id="email"
-                            class="form-input"
-                            type="email"
-                            name="email"
-                            value="{{ old('email') }}"
-                            required
-                            autofocus
-                            placeholder="your.email@example.com"
-                        >
+                @if (session('status'))
+                    <div class="alert alert-success mb-3">
+                        {{ session('status') }}
                     </div>
-                    @error('email')
-                        <div class="validation-error">{{ $message }}</div>
-                    @enderror
-                </div>
+                @endif
 
-                <!-- Password -->
-                <div class="form-group">
-                    <label for="password" class="form-label form-label-required">Password</label>
-                    <div class="password-input-container">
-                        <input id="password"
-                            class="form-input"
-                            type="password"
-                            name="password"
-                            required
-                            autocomplete="current-password"
-                        >
-                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('password')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
+                @if ($errors->any())
+                    <div class="alert alert-danger mb-3">
+                        <ul class="mb-0 ps-3">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
                     </div>
-                    @error('password')
-                        <div class="validation-error">{{ $message }}</div>
-                    @enderror
-                </div>
+                @endif
 
-                <!-- Remember Me and Forgot Password -->
-                <div class="d-flex justify-between align-center mb-4">
-                    <div class="form-checkbox-group">
-                        <input id="remember_me" type="checkbox" class="form-checkbox" name="remember">
-                        <label for="remember_me" class="form-checkbox-label">Remember me</label>
+                <form method="POST" action="{{ route('login') }}">
+                    @csrf
+
+                    <!-- Email Address -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <div class="position-relative">
+                            <span class="input-icon">
+                                <i class="bi bi-envelope"></i>
+                            </span>
+                            <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}" placeholder="Enter your email" required autofocus>
+                            @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
 
-                    @if (Route::has('password.request'))
-                        <a class="auth-link text-sm" href="{{ route('password.request') }}">
-                            Forgot password?
-                        </a>
-                    @endif
-                </div>
+                    <!-- Password -->
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="position-relative">
+                            <span class="input-icon">
+                                <i class="bi bi-lock"></i>
+                            </span>
+                            <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" placeholder="Enter your password" required>
+                            <button type="button" class="password-toggle" id="togglePassword">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            @error('password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
 
-                <button type="submit" class="btn btn-primary">
-                    Sign in
-                </button>
+                    <!-- Login As (Role) -->
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Login As</label>
+                        <div class="position-relative">
+                            <span class="input-icon">
+                                <i class="bi bi-person-badge"></i>
+                            </span>
+                            <select class="form-select @error('role') is-invalid @enderror" id="role" name="role" required>
+                                <option value="" selected disabled>Select a role</option>
+                                <option value="super-admin" {{ old('role') == 'super-admin' ? 'selected' : '' }}>Super Admin</option>
+                                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                                <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>User</option>
+                            </select>
+                            @error('role')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
 
-                <div class="text-center text-sm mt-4">
-                    Don't have an account?
-                    <a href="{{ route('register') }}" class="auth-link">
-                        Sign up
-                    </a>
-                </div>
-            </form>
+                    <!-- Remember Me and Forgot Password -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="remember" name="remember" {{ old('remember') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="remember">
+                                Remember me
+                            </label>
+                        </div>
+
+                        @if (Route::has('password.request'))
+                            <a href="{{ route('password.request') }}" class="forgot-password">
+                                Forgot password?
+                            </a>
+                        @endif
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary w-100 btn-login">
+                        Sign In
+                    </button>
+
+                    <!-- Register Link -->
+                    <div class="text-center mt-4">
+                        <span class="text-muted">Don't have an account?</span>
+                        <a href="{{ route('register') }}" class="register-link ms-1">Sign up</a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
+    <!-- Bootstrap 5 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SweetAlert2 JS via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
+
     <script>
-        function togglePasswordVisibility(inputId) {
-            const passwordInput = document.getElementById(inputId);
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle password visibility
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('password');
+
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+
+                // Toggle eye icon
+                this.querySelector('i').classList.toggle('bi-eye');
+                this.querySelector('i').classList.toggle('bi-eye-slash');
+            });
+
+            // Initialize SweetAlert2 for flash messages
+            @if(session('success'))
+                Swal.fire({
+                    title: 'Success!',
+                    text: "{{ session('success') }}",
+                    icon: 'success',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'animated fadeInDown faster'
+                    }
+                });
+            @endif
+
+            @if(session('error'))
+                Swal.fire({
+                    title: 'Error!',
+                    text: "{{ session('error') }}",
+                    icon: 'error',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'animated fadeInDown faster'
+                    }
+                });
+            @endif
+        });
     </script>
 </body>
 </html>
