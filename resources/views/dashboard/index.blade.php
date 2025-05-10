@@ -199,7 +199,7 @@
 
 <!-- Stats Section -->
 <div class="stats-container">
-    @role('super-admin')
+    @if(Auth::user()->hasRole('super-admin'))
         <div class="stat-card">
             <div class="stat-icon">👥</div>
             <div class="stat-content">
@@ -228,9 +228,7 @@
                 <p>Card Templates</p>
             </div>
         </div>
-    @endrole
-
-    @role('admin')
+    @elseif(Auth::user()->hasRole('admin'))
         <div class="stat-card">
             <div class="stat-icon">👥</div>
             <div class="stat-content">
@@ -252,9 +250,7 @@
                 <p>Approved Cards</p>
             </div>
         </div>
-    @endrole
-
-    @role('user')
+    @else
         <div class="stat-card">
             <div class="stat-icon">📇</div>
             <div class="stat-content">
@@ -269,13 +265,13 @@
                 <p>Pending Approval</p>
             </div>
         </div>
-    @endrole
+    @endif
 </div>
 
 <!-- Action Cards Section -->
 <h3 class="section-title">Quick Actions</h3>
 <div class="action-cards">
-    @role('user')
+    @if(!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('super-admin'))
         <div class="action-card">
             <div class="card-header">
                 <div class="card-icon">✨</div>
@@ -309,12 +305,12 @@
                 <p>Download your approved business cards in PDF format</p>
             </div>
             <div class="card-actions">
-                <a href="{{ route('card.download') }}" class="btn btn-secondary">Download</a>
+                <a href="{{ route('card.download') }}" class="btn btn-secondary">Download PDF</a>
             </div>
         </div>
-    @endrole
+    @endif
 
-    @role('admin')
+    @if(Auth::user()->hasRole('admin'))
         <div class="action-card">
             <div class="card-header">
                 <div class="card-icon">✅</div>
@@ -351,9 +347,9 @@
                 <a href="{{ route('dashboard') }}" class="btn btn-secondary">View Users</a>
             </div>
         </div>
-    @endrole
+    @endif
 
-    @role('super-admin')
+    @if(Auth::user()->hasRole('super-admin'))
         <div class="action-card">
             <div class="card-header">
                 <div class="card-icon">👥</div>
@@ -390,11 +386,11 @@
                 <a href="{{ route('dashboard') }}" class="btn btn-secondary">Manage Templates</a>
             </div>
         </div>
-    @endrole
+    @endif
 </div>
 
 <!-- My Cards Section for Users -->
-@role('user')
+@if(!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('super-admin'))
 <h3 class="section-title">My Business Cards</h3>
 <div class="table-container">
     <table class="data-table">
@@ -427,7 +423,7 @@
                         <div class="card-actions">
                             <a href="{{ route('dashboard') }}" class="btn btn-sm btn-primary">Edit</a>
                             @if($card->status == 'approved')
-                                <a href="{{ route('card.download') }}" class="btn btn-sm btn-secondary">Download PDF</a>
+                                <a href="{{ route('card.download', ['id' => $card->id]) }}" class="btn btn-sm btn-secondary">Download PDF</a>
                             @endif
                         </div>
                     </td>
@@ -441,10 +437,10 @@
         </tbody>
     </table>
 </div>
-@endrole
+@endif
 
 <!-- Pending Approvals for Admins -->
-@role('admin')
+@if(Auth::user()->hasRole('admin'))
 <h3 class="section-title">Pending Approvals</h3>
 <div class="table-container">
     <table class="data-table">
@@ -479,5 +475,5 @@
         </tbody>
     </table>
 </div>
-@endrole
+@endif
 @endsection

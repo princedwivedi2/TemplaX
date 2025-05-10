@@ -461,7 +461,7 @@
                             <span>Dashboard</span>
                         </a>
                     </li>
-                    
+
                     <div class="nav-section">
                         <div class="nav-section-title">Cards</div>
                         <li class="{{ request()->routeIs('cards.index') ? 'active' : '' }}">
@@ -477,8 +477,8 @@
                             </a>
                         </li>
                     </div>
-                    
-                    @role('admin')
+
+                    @if(Auth::user()->hasRole('admin'))
                     <div class="nav-section">
                         <div class="nav-section-title">Admin</div>
                         <li class="{{ request()->routeIs('templates.index') ? 'active' : '' }}">
@@ -500,9 +500,9 @@
                             </a>
                         </li>
                     </div>
-                    @endrole
-                    
-                    @role('super-admin')
+                    @endif
+
+                    @if(Auth::user()->hasRole('super-admin'))
                     <div class="nav-section">
                         <div class="nav-section-title">Super Admin</div>
                         <li class="{{ request()->routeIs('admins.index') ? 'active' : '' }}">
@@ -518,7 +518,7 @@
                             </a>
                         </li>
                     </div>
-                    @endrole
+                    @endif
                 </ul>
             </nav>
             <div class="sidebar-footer">
@@ -529,13 +529,13 @@
                     <div class="user-details">
                         <div class="user-name">{{ Auth::user()->name }}</div>
                         <div class="user-role">
-                            @role('super-admin')
+                            @if(Auth::user()->hasRole('super-admin'))
                                 Super Admin
-                            @elserole('admin')
+                            @elseif(Auth::user()->hasRole('admin'))
                                 Admin
                             @else
                                 User
-                            @endrole
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -563,13 +563,13 @@
                     <div class="header-user-info">
                         <div class="header-user-name">{{ Auth::user()->name }}</div>
                         <div class="header-user-role">
-                            @role('super-admin')
+                            @if(Auth::user()->hasRole('super-admin'))
                                 Super Admin
-                            @elserole('admin')
+                            @elseif(Auth::user()->hasRole('admin'))
                                 Admin
                             @else
                                 User
-                            @endrole
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -600,7 +600,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const toggleBtn = document.getElementById('toggleSidebar');
             const dashboard = document.getElementById('dashboardContainer');
-            
+
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', function() {
                     dashboard.classList.toggle('sidebar-collapsed');
