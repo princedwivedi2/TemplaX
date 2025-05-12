@@ -44,27 +44,49 @@
                 </div>
                 <div class="modal-body">
                     <form id="addUserForm">
+                        @csrf
                         <div class="mb-3">
                             <label for="user_name" class="form-label">Full Name</label>
                             <input type="text" class="form-control" id="user_name" name="name" required>
+                            <div class="invalid-feedback" id="nameError"></div>
                         </div>
                         <div class="mb-3">
                             <label for="user_email" class="form-label">Email Address</label>
                             <input type="email" class="form-control" id="user_email" name="email" required>
+                            <div class="invalid-feedback" id="emailError"></div>
                         </div>
                         <div class="mb-3">
                             <label for="user_organization" class="form-label">Organization</label>
-                            <input type="text" class="form-control" id="user_organization" name="organization">
+                            <input type="text" class="form-control" id="user_organization" name="organization" required>
+                            <div class="invalid-feedback" id="organizationError"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="user_role" class="form-label">Role</label>
+                            <select class="form-select" id="user_role" name="role" required>
+                                <option value="" selected disabled>Select a role</option>
+                                <option value="admin">Admin</option>
+                                <option value="user">User</option>
+                            </select>
+                            <div class="invalid-feedback" id="roleError"></div>
                         </div>
                         <div class="mb-3">
                             <label for="user_password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="user_password" name="password" required>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="user_password" name="password" required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback" id="passwordError"></div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="saveUserBtn">Save User</button>
+                    <button type="button" class="btn btn-primary" id="saveUserBtn">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Save User
+                    </button>
                 </div>
             </div>
         </div>
@@ -213,9 +235,11 @@
         $('#saveUserBtn').on('click', function() {
             const btn = $(this);
             const spinner = btn.find('.spinner-border');
+            const form = $('#addUserForm');
 
             // Reset previous errors
             $('.is-invalid').removeClass('is-invalid');
+            $('.invalid-feedback').empty();
 
             // Show loading spinner
             btn.prop('disabled', true);
@@ -226,8 +250,9 @@
                 name: $('#user_name').val(),
                 email: $('#user_email').val(),
                 organization: $('#user_organization').val(),
+                role: $('#user_role').val(),
                 password: $('#user_password').val(),
-                _token: '{{ csrf_token() }}'
+                _token: csrfToken
             };
 
             // Send AJAX request
@@ -240,15 +265,20 @@
                     btn.prop('disabled', false);
                     spinner.addClass('d-none');
 
-                    // Close modal and show success message
+                    // Show success message
+                    Swal.fire({
+                        title: 'Success!',
+                        text: response.message || 'User created successfully!',
+                        icon: 'success',
+                        confirmButtonColor: '#0d6efd'
+                    });
+
+                    // Close modal and reset form
                     $('#addUserModal').modal('hide');
-                    showAlert('success', response.message);
+                    form[0].reset();
 
-                    // Reset form
-                    $('#addUserForm')[0].reset();
-
-                    // Reload users table
-                    $('#usersTable').DataTable().ajax.reload();
+                    // Reload DataTable
+                    table.ajax.reload();
                 },
                 error: function(xhr) {
                     // Hide loading spinner
@@ -256,27 +286,20 @@
                     spinner.addClass('d-none');
 
                     if (xhr.status === 422) {
+                        // Validation errors
                         const errors = xhr.responseJSON.errors;
-
-                        // Display validation errors
-                        if (errors.name) {
-                            $('#user_name').addClass('is-invalid');
-                            $('#nameError').text(errors.name[0]);
-                        }
-                        if (errors.email) {
-                            $('#user_email').addClass('is-invalid');
-                            $('#emailError').text(errors.email[0]);
-                        }
-                        if (errors.organization) {
-                            $('#user_organization').addClass('is-invalid');
-                            $('#organizationError').text(errors.organization[0]);
-                        }
-                        if (errors.password) {
-                            $('#user_password').addClass('is-invalid');
-                            $('#passwordError').text(errors.password[0]);
-                        }
+                        Object.keys(errors).forEach(field => {
+                            $(`#user_${field}`).addClass('is-invalid');
+                            $(`#${field}Error`).text(errors[field][0]);
+                        });
                     } else {
-                        showAlert('danger', 'An error occurred while creating the user.');
+                        // Show error message
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Failed to create user. Please try again.',
+                            icon: 'error',
+                            confirmButtonColor: '#dc3545'
+                        });
                     }
                 }
             });
@@ -474,6 +497,79 @@
                 }
             });
         });
+    });
+</script>
+@endsection
+
+@section('scripts')
+<script>
+    // Define URLs for AJAX requests
+    const adminUsersDataUrl = '{{ route("admin.users.data") }}';
+    const adminUsersShowUrl = '{{ route("admin.users.show", ["id" => "__ID__"]) }}';
+    const adminUsersUpdateUrl = '{{ route("admin.users.update", ["id" => "__ID__"]) }}';
+    const adminUsersDeleteUrl = '{{ route("admin.users.destroy", ["id" => "__ID__"]) }}';
+    const csrfToken = '{{ csrf_token() }}';
+
+    $(document).ready(function() {
+        // Initialize DataTable with server-side processing
+        const table = $('#usersTable').DataTable({
+            processing: true,
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
+            ajax: {
+                url: adminUsersDataUrl,
+                type: 'GET',
+                dataSrc: function(json) {
+                    if (json.success) {
+                        return json.data;
+                    } else {
+                        showAlert('danger', 'Failed to load users data.');
+                        return [];
+                    }
+                }
+            },
+            columns: [
+                { data: 'id' },
+                { data: 'name' },
+                { data: 'email' },
+                { data: 'organization', defaultContent: 'N/A' },
+                { data: 'roles', render: function(data) {
+                    return data.map(role => `<span class="badge bg-info">${role.name}</span>`).join(' ');
+                }},
+                { data: 'created_at', render: function(data) {
+                    return new Date(data).toLocaleDateString();
+                }},
+                { data: null, render: function(data) {
+                    return `
+                        <button class="btn btn-sm btn-info edit-user-btn" data-id="${data.id}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-user-btn" data-id="${data.id}" data-name="${data.name}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    `;
+                }}
+            ],
+            responsive: true,
+            scrollX: true,
+            autoWidth: false,
+            columnDefs: [
+                { width: '5%', targets: 0 },
+                { width: '15%', targets: 1 },
+                { width: '20%', targets: 2 },
+                { width: '15%', targets: 3 },
+                { width: '15%', targets: 4 },
+                { width: '15%', targets: 5 },
+                { width: '15%', targets: 6 }
+            ]
+        });
+
+        // Handle window resize
+        $(window).on('resize', function() {
+            table.columns.adjust();
+        });
+
+        // Rest of the event handlers...
     });
 </script>
 @endsection
