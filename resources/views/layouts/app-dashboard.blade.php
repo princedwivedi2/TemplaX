@@ -165,7 +165,7 @@
 
                     @if(!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('super-admin'))
                     <li class="nav-item mt-2">
-                        <span class="nav-header text-uppercase text-muted small d-block py-2">Cards</span>
+                        <span class="nav-header text-uppercase text-white small d-block py-2">Cards</span>
                     </li>
                     <li class="nav-item">
                         <a href="{{ route('cards.create') }}" class="nav-link text-white {{ request()->routeIs('cards.create') ? 'active' : '' }}">
@@ -181,18 +181,14 @@
 
                     @if(Auth::user()->hasRole('admin'))
                     <li class="nav-item mt-2">
-                        <span class="nav-header text-uppercase text-muted small d-block py-2">Admin</span>
+                        <span class="nav-header text-uppercase text-white small d-block py-2">Admin</span>
                     </li>
                     <li class="nav-item">
                         <a href="{{ route('templates.index') }}" class="nav-link text-white {{ request()->routeIs('templates.index') ? 'active' : '' }}">
                             <i class="bi bi-grid-3x3 me-2"></i> Templates
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="{{ route('cards.approval') }}" class="nav-link text-white {{ request()->routeIs('cards.approval') ? 'active' : '' }}">
-                            <i class="bi bi-check-circle me-2"></i> Approvals
-                        </a>
-                    </li>
+                   
                     <li class="nav-item">
                         <a href="{{ route('users.index') }}" class="nav-link text-white {{ request()->routeIs('users.index') ? 'active' : '' }}">
                             <i class="bi bi-people me-2"></i> Users
@@ -202,18 +198,15 @@
 
                     @if(Auth::user()->hasRole('super-admin'))
                     <li class="nav-item mt-2">
-                        <span class="nav-header text-uppercase text-muted small d-block py-2">Super Admin</span>
+                        <span class="nav-header text-uppercase text-white small d-block py-2">Super Admin</span>
                     </li>
                     <li class="nav-item">
                         <a href="{{ route('admin.users.index') }}" class="nav-link text-white {{ request()->routeIs('admin.users.index') ? 'active' : '' }}">
                             <i class="bi bi-people me-2"></i> Manage Users
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="{{ route('admin.users.admins') }}" class="nav-link text-white {{ request()->routeIs('admin.users.admins') ? 'active' : '' }}">
-                            <i class="bi bi-person-badge me-2"></i> Manage Admins
-                        </a>
-                    </li>
+                  
+                   
                     <li class="nav-item">
                         <a href="{{ route('settings.index') }}" class="nav-link text-white {{ request()->routeIs('settings.index') ? 'active' : '' }}">
                             <i class="bi bi-gear me-2"></i> Settings
