@@ -27,9 +27,10 @@ class UserManagementController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
+    {  
+        dd('yiyi');
         $users = User::with('roles')->get();
-        $roles = Role::all();
+        $roles = Role::pluck('name');
 
         return view('admin.users.index', compact('users', 'roles'));
     }
@@ -42,7 +43,7 @@ class UserManagementController extends Controller
     public function admins()
     {
         $admins = User::role('admin')->with('roles')->get();
-        $roles = Role::all();
+        $roles = Role::pluck('name');
 
         return view('admin.users.admins', compact('admins', 'roles'));
     }
