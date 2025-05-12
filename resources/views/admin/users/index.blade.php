@@ -1,6 +1,29 @@
 @extends('layouts.app-dashboard')
 
 @section('title', 'User Management')
+@
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+<style>
+    .dataTables_wrapper .dataTables_length, 
+    .dataTables_wrapper .dataTables_filter {
+        margin-bottom: 1rem;
+    }
+    
+    .table-responsive {
+        padding: 1rem;
+    }
+    
+    #usersTable {
+        width: 100% !important;
+    }
+    
+    .dataTables_scrollBody {
+        min-height: 400px;
+    }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
 @section('content')
 <div class="container-fluid px-4">
@@ -11,23 +34,49 @@
         </button>
     </div>
 
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addUserModalLabel">Add New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm">
+                        <div class="mb-3">
+                            <label for="user_name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="user_name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="user_email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="user_email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="user_organization" class="form-label">Organization</label>
+                            <input type="text" class="form-control" id="user_organization" name="organization">
+                        </div>
+                        <div class="mb-3">
+                            <label for="user_password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="user_password" name="password" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveUserBtn">Save User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Alert Container -->
     <div id="alertContainer"></div>
 
     <!-- Content Row -->
     <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">All Users</h6>
-            <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-funnel me-1"></i> Filter
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="filterDropdown">
-                    <li><a class="dropdown-item filter-item" href="#" data-filter="all">All Users</a></li>
-                    <li><a class="dropdown-item filter-item" href="#" data-filter="admin">Admins Only</a></li>
-                    <li><a class="dropdown-item filter-item" href="#" data-filter="user">Regular Users Only</a></li>
-                </ul>
-            </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -44,7 +93,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Table data will be loaded via AJAX -->
+                        <!-- Table data will be loaded dynamically via AJAX -->
                     </tbody>
                 </table>
             </div>
@@ -52,267 +101,189 @@
     </div>
 </div>
 
-<!-- Add User Modal -->
-<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addUserModalLabel">Add New User</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addUserForm">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Full Name</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
-                        <div class="invalid-feedback" id="nameError"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email Address</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                        <div class="invalid-feedback" id="emailError"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="organization" class="form-label">Organization</label>
-                        <input type="text" class="form-control" id="organization" name="organization" required>
-                        <div class="invalid-feedback" id="organizationError"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="userType" class="form-label">User Type</label>
-                        <select class="form-select" id="userType" name="userType" required>
-                            <option value="" selected disabled>Select user type</option>
-                            <option value="regular">Regular User</option>
-                            <option value="super-admin">Super Admin</option>
-                        </select>
-                    </div>
 
-                    <div class="mb-3 regular-user-role">
-                        <label for="role" class="form-label">Role</label>
-                        <select class="form-select" id="role" name="role">
-                            <option value="" selected disabled>Select a role</option>
-                            <option value="admin">Admin</option>
-                            <option value="user">User</option>
-                        </select>
-                        <div class="invalid-feedback" id="roleError"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <div class="input-group">
-                            <input type="password" class="form-control" id="password" name="password" required>
-                            <button class="btn btn-outline-secondary toggle-password" type="button">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </div>
-                        <div class="invalid-feedback" id="passwordError"></div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveUserBtn">
-                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                    Save User
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Edit User Modal -->
-<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editUserForm">
-                    <input type="hidden" id="edit_user_id" name="user_id">
-                    <div class="mb-3">
-                        <label for="edit_name" class="form-label">Full Name</label>
-                        <input type="text" class="form-control" id="edit_name" name="name" required>
-                        <div class="invalid-feedback" id="editNameError"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit_email" class="form-label">Email Address</label>
-                        <input type="email" class="form-control" id="edit_email" name="email" required>
-                        <div class="invalid-feedback" id="editEmailError"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit_organization" class="form-label">Organization</label>
-                        <input type="text" class="form-control" id="edit_organization" name="organization" required>
-                        <div class="invalid-feedback" id="editOrganizationError"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit_userType" class="form-label">User Type</label>
-                        <select class="form-select" id="edit_userType" name="userType" required>
-                            <option value="" selected disabled>Select user type</option>
-                            <option value="regular">Regular User</option>
-                            <option value="super-admin">Super Admin</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3 edit-regular-user-role">
-                        <label for="edit_role" class="form-label">Role</label>
-                        <select class="form-select" id="edit_role" name="role">
-                            <option value="" selected disabled>Select a role</option>
-                            <option value="admin">Admin</option>
-                            <option value="user">User</option>
-                        </select>
-                        <div class="invalid-feedback" id="editRoleError"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit_password" class="form-label">Password (Leave blank to keep current)</label>
-                        <div class="input-group">
-                            <input type="password" class="form-control" id="edit_password" name="password">
-                            <button class="btn btn-outline-secondary toggle-password" type="button">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </div>
-                        <div class="invalid-feedback" id="editPasswordError"></div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="updateUserBtn">
-                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                    Update User
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteUserModalLabel">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete this user? This action cannot be undone.</p>
-                <p><strong>User: </strong><span id="deleteUserName"></span></p>
-                <input type="hidden" id="delete_user_id">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
-                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                    Delete User
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-@endsection
-
-@section('scripts')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script>
-    // Function to load users data
-    function loadUsers(filter = 'all') {
-        // Show loading indicator
-        $('#usersTable tbody').html('<tr><td colspan="7" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>');
-
-        // Send AJAX request
-        $.ajax({
-            url: adminUsersDataUrl,
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    let users = response.data;
-                    let tableRows = '';
-
-                    // Filter users if needed
-                    if (filter !== 'all') {
-                        users = users.filter(user => {
-                            const userRoles = user.roles.map(role => role.name);
-                            return userRoles.includes(filter);
-                        });
-                    }
-
-                    // Generate table rows
-                    if (users.length > 0) {
-                        users.forEach(user => {
-                            const roles = user.roles.map(role => role.name).join(', ');
-                            const createdAt = new Date(user.created_at).toLocaleDateString();
-
-                            tableRows += `
-                                <tr>
-                                    <td>${user.id}</td>
-                                    <td>${user.name}</td>
-                                    <td>${user.email}</td>
-                                    <td>${user.organization || 'N/A'}</td>
-                                    <td><span class="badge ${getBadgeClass(roles)}">${roles}</span></td>
-                                    <td>${createdAt}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info edit-user-btn" data-id="${user.id}">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger delete-user-btn" data-id="${user.id}" data-name="${user.name}">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            `;
-                        });
+    const adminUsersDataUrl = '{{ route('admin.users.data') }}';
+</script>
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        const table = $('#usersTable').DataTable({
+            ajax: {
+                url: adminUsersDataUrl,
+                type: 'GET',
+                dataSrc: function(json) {
+                    if (json.success) {
+                        return json.data;
                     } else {
-                        tableRows = '<tr><td colspan="7" class="text-center">No users found</td></tr>';
+                        showAlert('danger', 'Failed to load users data.');
+                        return [];
                     }
-
-                    // Update table
-                    $('#usersTable tbody').html(tableRows);
-
-                    // Initialize edit and delete buttons
-                    initializeUserButtons();
-                } else {
-                    showAlert('danger', 'Failed to load users data.');
                 }
             },
-            error: function() {
-                $('#usersTable tbody').html('<tr><td colspan="7" class="text-center text-danger">Error loading users data</td></tr>');
-                showAlert('danger', 'An error occurred while loading users data.');
+            columns: [
+                { data: 'id' },
+                { data: 'name' },
+                { data: 'email' },
+                { data: 'organization', defaultContent: 'N/A' },
+                { data: 'roles', render: function(data) {
+                    return data.map(role => `<span class="badge bg-info">${role}</span>`).join(' ');
+                }},
+                { data: 'created_at', render: function(data) {
+                    return new Date(data).toLocaleDateString();
+                }},
+                { data: null, render: function(data) {
+                    return `
+                        <button class="btn btn-sm btn-info edit-user-btn" data-id="${data.id}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-user-btn" data-id="${data.id}" data-name="${data.name}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    `;
+                }}
+            ],
+            pageLength: 10, // Number of rows per page
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']], // Page length options
+            responsive: true, // Make table responsive
+            scrollX: true, // Enable horizontal scrolling
+            autoWidth: false, // Disable auto-width calculation
+            columnDefs: [
+                { width: '5%', targets: 0 }, // ID column
+                { width: '15%', targets: 1 }, // Name column
+                { width: '20%', targets: 2 }, // Email column
+                { width: '15%', targets: 3 }, // Organization column
+                { width: '15%', targets: 4 }, // Role column
+                { width: '15%', targets: 5 }, // Created At column
+                { width: '15%', targets: 6 }  // Actions column
+            ],
+            dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                 '<"row"<"col-sm-12"tr>>' +
+                 '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+        });
+
+        // Adjust table when window resizes
+        $(window).on('resize', function() {
+            table.columns.adjust();
+        });
+
+        // Reload table data on filter change
+        $('.filter-item').on('click', function(e) {
+            e.preventDefault();
+            const filter = $(this).data('filter');
+            $('#filterDropdown').text($(this).text());
+            table.ajax.url(`${adminUsersDataUrl}?filter=${filter}`).load();
+        });
+
+        // Toggle password visibility
+        $('.toggle-password').on('click', function() {
+            const passwordInput = $(this).siblings('input');
+            const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
+            passwordInput.attr('type', type);
+            $(this).find('i').toggleClass('bi-eye bi-eye-slash');
+        });
+
+        // Handle user type selection in add form
+        $('#userType').on('change', function() {
+            const userType = $(this).val();
+            if (userType === 'super-admin') {
+                $('.regular-user-role').hide();
+                $('#role').prop('required', false);
+            } else {
+                $('.regular-user-role').show();
+                $('#role').prop('required', true);
             }
         });
-    }
 
-    // Function to get badge class based on role
-    function getBadgeClass(role) {
-        if (role.includes('super-admin')) {
-            return 'bg-danger';
-        } else if (role.includes('admin')) {
-            return 'bg-warning';
-        } else {
-            return 'bg-info';
-        }
-    }
+        // Handle user type selection in edit form
+        $('#edit_userType').on('change', function() {
+            const userType = $(this).val();
+            if (userType === 'super-admin') {
+                $('.edit-regular-user-role').hide();
+                $('#edit_role').prop('required', false);
+            } else {
+                $('.edit-regular-user-role').show();
+                $('#edit_role').prop('required', true);
+            }
+        });
 
-    // Function to show alert message
-    function showAlert(type, message) {
-        const alertHtml = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
+        // Add user form submission
+        $('#saveUserBtn').on('click', function() {
+            const btn = $(this);
+            const spinner = btn.find('.spinner-border');
 
-        $('#alertContainer').html(alertHtml);
+            // Reset previous errors
+            $('.is-invalid').removeClass('is-invalid');
 
-        // Auto-dismiss after 5 seconds
-        setTimeout(function() {
-            $('.alert').alert('close');
-        }, 5000);
-    }
+            // Show loading spinner
+            btn.prop('disabled', true);
+            spinner.removeClass('d-none');
 
-    // Function to initialize user buttons
-    function initializeUserButtons() {
+            // Get form data
+            const formData = {
+                name: $('#user_name').val(),
+                email: $('#user_email').val(),
+                organization: $('#user_organization').val(),
+                password: $('#user_password').val(),
+                _token: '{{ csrf_token() }}'
+            };
+
+            // Send AJAX request
+            $.ajax({
+                url: '{{ route("admin.users.store") }}',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    // Hide loading spinner
+                    btn.prop('disabled', false);
+                    spinner.addClass('d-none');
+
+                    // Close modal and show success message
+                    $('#addUserModal').modal('hide');
+                    showAlert('success', response.message);
+
+                    // Reset form
+                    $('#addUserForm')[0].reset();
+
+                    // Reload users table
+                    $('#usersTable').DataTable().ajax.reload();
+                },
+                error: function(xhr) {
+                    // Hide loading spinner
+                    btn.prop('disabled', false);
+                    spinner.addClass('d-none');
+
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON.errors;
+
+                        // Display validation errors
+                        if (errors.name) {
+                            $('#user_name').addClass('is-invalid');
+                            $('#nameError').text(errors.name[0]);
+                        }
+                        if (errors.email) {
+                            $('#user_email').addClass('is-invalid');
+                            $('#emailError').text(errors.email[0]);
+                        }
+                        if (errors.organization) {
+                            $('#user_organization').addClass('is-invalid');
+                            $('#organizationError').text(errors.organization[0]);
+                        }
+                        if (errors.password) {
+                            $('#user_password').addClass('is-invalid');
+                            $('#passwordError').text(errors.password[0]);
+                        }
+                    } else {
+                        showAlert('danger', 'An error occurred while creating the user.');
+                    }
+                }
+            });
+        });
+
         // Edit user button
-        $('.edit-user-btn').on('click', function() {
+        $('#usersTable').on('click', '.edit-user-btn', function() {
             const userId = $(this).data('id');
 
             // Fetch user data
@@ -362,7 +333,7 @@
         });
 
         // Delete user button
-        $('.delete-user-btn').on('click', function() {
+        $('#usersTable').on('click', '.delete-user-btn', function() {
             const userId = $(this).data('id');
             const userName = $(this).data('name');
 
@@ -420,7 +391,7 @@
                     showAlert('success', response.message);
 
                     // Reload users table
-                    loadUsers();
+                    table.ajax.reload();
                 },
                 error: function(xhr) {
                     // Hide loading spinner
@@ -485,7 +456,7 @@
                     showAlert('success', response.message);
 
                     // Reload users table
-                    loadUsers();
+                    table.ajax.reload();
                 },
                 error: function(xhr) {
                     // Hide loading spinner
@@ -499,136 +470,6 @@
                         showAlert('danger', xhr.responseJSON.message);
                     } else {
                         showAlert('danger', 'An error occurred while deleting the user.');
-                    }
-                }
-            });
-        });
-    }
-
-    $(document).ready(function() {
-        // Load users data
-        loadUsers();
-
-        // Filter users
-        $('.filter-item').on('click', function(e) {
-            e.preventDefault();
-            const filter = $(this).data('filter');
-            $('#filterDropdown').text($(this).text());
-            loadUsers(filter);
-        });
-
-        // Toggle password visibility
-        $('.toggle-password').on('click', function() {
-            const passwordInput = $(this).siblings('input');
-            const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
-            passwordInput.attr('type', type);
-            $(this).find('i').toggleClass('bi-eye bi-eye-slash');
-        });
-
-        // Handle user type selection in add form
-        $('#userType').on('change', function() {
-            const userType = $(this).val();
-            if (userType === 'super-admin') {
-                $('.regular-user-role').hide();
-                $('#role').prop('required', false);
-            } else {
-                $('.regular-user-role').show();
-                $('#role').prop('required', true);
-            }
-        });
-
-        // Handle user type selection in edit form
-        $('#edit_userType').on('change', function() {
-            const userType = $(this).val();
-            if (userType === 'super-admin') {
-                $('.edit-regular-user-role').hide();
-                $('#edit_role').prop('required', false);
-            } else {
-                $('.edit-regular-user-role').show();
-                $('#edit_role').prop('required', true);
-            }
-        });
-
-        // Add user form submission
-        $('#saveUserBtn').on('click', function() {
-            const btn = $(this);
-            const spinner = btn.find('.spinner-border');
-
-            // Reset previous errors
-            $('.is-invalid').removeClass('is-invalid');
-
-            // Show loading spinner
-            btn.prop('disabled', true);
-            spinner.removeClass('d-none');
-
-            // Get form data
-            const userType = $('#userType').val();
-            const formData = {
-                name: $('#name').val(),
-                email: $('#email').val(),
-                organization: $('#organization').val(),
-                password: $('#password').val(),
-                _token: '{{ csrf_token() }}'
-            };
-
-            // Add appropriate role information
-            if (userType === 'super-admin') {
-                formData.is_super_admin = 'true';
-            } else {
-                formData.role = $('#role').val();
-            }
-
-            // Send AJAX request
-            $.ajax({
-                url: '{{ route("admin.users.store") }}',
-                type: 'POST',
-                data: formData,
-                success: function(response) {
-                    // Hide loading spinner
-                    btn.prop('disabled', false);
-                    spinner.addClass('d-none');
-
-                    // Close modal and show success message
-                    $('#addUserModal').modal('hide');
-                    showAlert('success', response.message);
-
-                    // Reset form
-                    $('#addUserForm')[0].reset();
-
-                    // Reload users table
-                    loadUsers();
-                },
-                error: function(xhr) {
-                    // Hide loading spinner
-                    btn.prop('disabled', false);
-                    spinner.addClass('d-none');
-
-                    if (xhr.status === 422) {
-                        const errors = xhr.responseJSON.errors;
-
-                        // Display validation errors
-                        if (errors.name) {
-                            $('#name').addClass('is-invalid');
-                            $('#nameError').text(errors.name[0]);
-                        }
-                        if (errors.email) {
-                            $('#email').addClass('is-invalid');
-                            $('#emailError').text(errors.email[0]);
-                        }
-                        if (errors.organization) {
-                            $('#organization').addClass('is-invalid');
-                            $('#organizationError').text(errors.organization[0]);
-                        }
-                        if (errors.role) {
-                            $('#role').addClass('is-invalid');
-                            $('#roleError').text(errors.role[0]);
-                        }
-                        if (errors.password) {
-                            $('#password').addClass('is-invalid');
-                            $('#passwordError').text(errors.password[0]);
-                        }
-                    } else {
-                        showAlert('danger', 'An error occurred while creating the user.');
                     }
                 }
             });
