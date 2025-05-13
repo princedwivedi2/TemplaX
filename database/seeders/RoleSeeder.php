@@ -16,10 +16,11 @@ class RoleSeeder extends Seeder
      */
     public function run()
     {
-        // Create roles
-        $superAdminRole = Role::create(['name' => 'super-admin']);
-        $adminRole = Role::create(['name' => 'admin']);
-        $userRole = Role::create(['name' => 'user']);
+        // Assign roles dynamically if needed
+        $roles = ['super-admin', 'admin', 'user'];
+        foreach ($roles as $role) {
+            Role::firstOrCreate(['name' => $role]);
+        }
 
         // Assign roles to users (assuming user with ID 1 exists)
         $user = User::find(1);

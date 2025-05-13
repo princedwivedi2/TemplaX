@@ -21,7 +21,7 @@
                 --success-color: #38c172;
                 --border-color: #dee2e6;
                 --text-color: #333;
-                --text-muted: #6c757d;
+                --text-muted: #b7b8b8;
                 --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
                 --transition: all 0.3s ease;
                 --border-radius: 0.375rem;

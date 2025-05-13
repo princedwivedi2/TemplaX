@@ -28,10 +28,7 @@ class UserManagementController extends Controller
      */
     public function index()
     {
-        $users = User::with('roles')->get();
-        $roles = Role::all();
-
-        return view('admin.users.index', compact('users', 'roles'));
+        return view('admin.users.index');
     }
 
     /**
@@ -42,7 +39,7 @@ class UserManagementController extends Controller
     public function admins()
     {
         $admins = User::role('admin')->with('roles')->get();
-        $roles = Role::all();
+        $roles = Role::pluck('name');
 
         return view('admin.users.admins', compact('admins', 'roles'));
     }
@@ -55,7 +52,10 @@ class UserManagementController extends Controller
      */
     public function getUsers(Request $request)
     {
-        $users = User::with('roles')->get();
+        $users = User::with('roles')->get()->map(function ($user) {
+            $user->roles = $user->roles->pluck('name')->toArray(); // Flatten roles to an array of names
+            return $user;
+        });
 
         return response()->json([
             'success' => true,

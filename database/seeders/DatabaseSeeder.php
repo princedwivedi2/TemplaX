@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 
+
 class DatabaseSeeder extends Seeder
 {
     /**
@@ -13,9 +14,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
         $this->call([
-            RoleSeeder::class,
+            RoleSeeder::class,  // This will create the roles first
+            UserSeeder::class,  // This will create the super admin user
         ]);
     }
 }
