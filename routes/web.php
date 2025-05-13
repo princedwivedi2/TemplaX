@@ -64,39 +64,20 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['auth', 'role:super-admin'])->group(function () {
         Route::prefix('super-admin')->group(function () {
             // User Management Routes
-            Route::get('/users', [App\Http\Controllers\UserManagementController::class, 'index'])->name('admin.users.index');
-            Route::get('/admins', [App\Http\Controllers\UserManagementController::class, 'admins'])->name('admin.users.admins');
+            Route::prefix('users')->name('admin.users.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('index');
+                Route::get('/data', [App\Http\Controllers\Admin\UserController::class, 'data'])->name('data');
+                Route::post('/', [App\Http\Controllers\Admin\UserController::class, 'store'])->name('store');
+                Route::get('/{id}', [App\Http\Controllers\Admin\UserController::class, 'show'])->name('show');
+                Route::put('/{id}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('update');
+                Route::delete('/{id}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('destroy');
+            });
 
-            // AJAX Routes for User Management
-            Route::get('/users/data', [App\Http\Controllers\UserManagementController::class, 'getUsers'])->name('admin.users.data');
-            Route::get('/admins/data', [App\Http\Controllers\UserManagementController::class, 'getAdmins'])->name('admin.admins.data');
-            Route::post('/users', [App\Http\Controllers\UserManagementController::class, 'store'])->name('admin.users.store');
-            Route::get('/users/{id}', [App\Http\Controllers\UserManagementController::class, 'show'])->name('admin.users.show');
-            Route::put('/users/{id}', [App\Http\Controllers\UserManagementController::class, 'update'])->name('admin.users.update');
-            Route::delete('/users/{id}', [App\Http\Controllers\UserManagementController::class, 'destroy'])->name('admin.users.destroy');
-
-            // Legacy routes (to be updated)
-            Route::get('/admins-old', function () {
-                return view('dashboard.index', ['activeTab' => 'admins']);
-            })->name('admins.index');
-
+            // Other Super Admin Routes
             Route::get('/settings', function () {
                 return view('dashboard.index', ['activeTab' => 'settings']);
             })->name('settings.index');
         });
-    });
-});
-
-// Admin routes
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    // User Management
-    Route::prefix('users')->name('users.')->group(function () {
-        Route::get('/', [UserController::class, 'index'])->name('index');
-        Route::get('/data', [UserController::class, 'data'])->name('data');
-        Route::post('/', [UserController::class, 'store'])->name('store');
-        Route::get('/{id}', [UserController::class, 'show'])->name('show');
-        Route::put('/{id}', [UserController::class, 'update'])->name('update');
-        Route::delete('/{id}', [UserController::class, 'destroy'])->name('destroy');
     });
 });
 
