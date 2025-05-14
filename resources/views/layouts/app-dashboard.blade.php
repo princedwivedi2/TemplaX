@@ -62,6 +62,23 @@
             width: calc(100% - var(--sidebar-width));
         }
 
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--navbar-height);
+            padding: 2rem;
+            width: calc(100% - var(--sidebar-width));
+            min-height: calc(100vh - var(--navbar-height));
+            transition: margin-left 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+
         /* Navbar */
         .navbar {
             position: fixed;
@@ -164,7 +181,7 @@
                             </a>
                         </li>
 
-                        @if(!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('super-admin'))
+                        <!-- Business Card Section -->
                         <li class="nav-item mt-2">
                             <span class="nav-header text-uppercase text-white small d-block py-2">Cards</span>
                         </li>
@@ -175,10 +192,9 @@
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('cards.index') }}" class="nav-link text-white {{ request()->routeIs('cards.index') ? 'active' : '' }}">
-                                <i class="bi bi-credit-card-2-front me-2"></i> My Cards
+                                <i class="bi bi-credit-card-2-front me-2"></i> {{ Auth::user()->hasRole('super-admin') ? 'All Cards' : 'My Cards' }}
                             </a>
                         </li>
-                        @endif
 
                         @if(Auth::user()->hasRole('admin'))
                         <li class="nav-item mt-2">
@@ -241,6 +257,9 @@
 
         <!-- Main Content -->
         <main class="main-content">
+            <!-- Content Area -->
+            @yield('content')
+
             <!-- Flash Messages -->
             @if(session('success') || session('error') || session('warning') || session('info'))
                 <div class="alert-container mb-4">

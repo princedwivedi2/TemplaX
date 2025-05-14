@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\BusinessCardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,27 +25,23 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Card routes
-    Route::prefix('cards')->group(function () {
-        Route::get('/', function () {
-            return view('dashboard.index', ['activeTab' => 'cards']);
-        })->name('cards.index');
-
-        Route::get('/create', function () {
-            return view('dashboard.index', ['activeTab' => 'create']);
-        })->name('cards.create');
-
-        Route::get('/download/{id?}', function ($id = null) {
-            // This is a placeholder for the actual PDF download functionality
-            // In a real application, you would generate and return a PDF here
-            return response()->json([
-                'message' => 'PDF download functionality will be implemented here',
-                'card_id' => $id
-            ]);
-        })->name('card.download');
-
+    Route::prefix('cards')->name('cards.')->group(function () {
+        // List and create routes
+        Route::get('/', [BusinessCardController::class, 'index'])->name('index');
+        Route::get('/create', [BusinessCardController::class, 'create_card'])->name('card.create');
+        Route::post('/', [BusinessCardController::class, 'store'])->name('store');
+        
+        // Admin routes
         Route::get('/approval', function () {
             return view('dashboard.index', ['activeTab' => 'approvals']);
-        })->middleware('role:admin|super-admin')->name('cards.approval');
+        })->middleware('role:admin|super-admin')->name('approval');
+
+        // Resource routes with {card} parameter
+        Route::get('/download/{card}', [BusinessCardController::class, 'download'])->name('download');
+        Route::get('/{card}', [BusinessCardController::class, 'show'])->name('show');
+        Route::get('/{card}/edit', [BusinessCardController::class, 'edit'])->name('edit');
+        Route::put('/{card}', [BusinessCardController::class, 'update'])->name('update');
+        Route::delete('/{card}', [BusinessCardController::class, 'destroy'])->name('destroy');
     });
 
     // Admin and Super Admin routes
@@ -66,6 +63,7 @@ Route::middleware(['auth'])->group(function () {
             // User Management Routes
             Route::prefix('users')->name('admin.users.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('index');
+                Route::get('/cards', [App\Http\Controllers\Admin\UserController::class, 'cards'])->name('cards');
                 Route::get('/data', [App\Http\Controllers\Admin\UserController::class, 'data'])->name('data');
                 Route::post('/', [App\Http\Controllers\Admin\UserController::class, 'store'])->name('store');
                 Route::get('/{id}', [App\Http\Controllers\Admin\UserController::class, 'show'])->name('show');
