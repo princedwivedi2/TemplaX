@@ -39,7 +39,7 @@
                     <h5 class="card-title fw-bold mb-0">Create Business Card</h5>
                 </div>
                 <p class="card-text text-muted mb-4">Create a new business card with your information</p>
-                <a href="{{ route('cards.create') }}" class="btn btn-primary">Create Card</a>
+                <a href="{{route('cards.create')}}" class="btn btn-primary">Create Card</a>
             </div>
         </div>
     </div>

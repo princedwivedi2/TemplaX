@@ -538,8 +538,7 @@ $(document).ready(function() {
             .prop('disabled', true);
         
         // Send AJAX request
-        $.ajax({
-            url: '{{ route('cards.store') }}',
+        $.ajax({            url: '{{ route('cards.store') }}',
             type: 'POST',
             data: formData,
             contentType: false,
@@ -554,8 +553,7 @@ $(document).ready(function() {
                         text: response.message,
                         icon: 'success',
                         confirmButtonColor: 'var(--bs-primary)'
-                    }).then((result) => {
-                        // Redirect to the cards index page
+                    }).then((result) => {                        // Redirect to the cards index page
                         window.location.href = '{{ route('cards.index') }}';
                     });
                 } else {

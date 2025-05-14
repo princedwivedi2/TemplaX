@@ -26,6 +26,7 @@ class BusinessCardController extends Controller
 
     public function create_card()
     {
+        
         return view('cards.create');
     }
 
@@ -203,13 +204,9 @@ class BusinessCardController extends Controller
 
     public function download(BusinessCard $card)
     {
-        // Check if the user is authorized to download this card
-        if ($card->user_id !== Auth::id() && !Auth::user()->hasRole(['admin', 'super-admin'])) {
-            abort(403);
-        }
-
+      
         // You could generate a PDF here using a library like dompdf
-        // For now, let's return card details as JSON
+        
         return response()->json([
             'success' => true,
             'message' => 'Card download functionality will be implemented here',

@@ -26,9 +26,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Card routes
     Route::prefix('cards')->name('cards.')->group(function () {
-        // List and create routes
+        // List and manage routes
         Route::get('/', [BusinessCardController::class, 'index'])->name('index');
-        Route::get('/create', [BusinessCardController::class, 'create_card'])->name('card.create');
+        Route::get('/create', [BusinessCardController::class, 'create_card'])->name('create');
         Route::post('/', [BusinessCardController::class, 'store'])->name('store');
         
         // Admin routes
