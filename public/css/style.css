@@ -1,0 +1,548 @@
+/* ========================================================================
+   TemplaX - Central CSS Architecture
+   Author: GitHub Copilot | Date: 2025-05-14
+   ========================================================================
+   This file powers the entire Laravel Blade frontend with a professional,
+   scalable, and maintainable utility/component system. No inline styles.
+   ------------------------------------------------------------------------
+*/
+
+/* ------------------------------------------------------------------------
+   1. CSS Custom Properties (Theme, Spacing, etc.)
+   ------------------------------------------------------------------------ */
+:root {
+  --primary: #0d6efd;
+  --primary-hover: #0b5ed7;
+  --secondary: #6c757d;
+  --success: #198754;
+  --danger: #dc3545;
+  --warning: #ffc107;
+  --info: #0dcaf0;
+  --light: #f8f9fa;
+  --dark: #212529;
+  --white: #fff;
+  --gray: #adb5bd;
+  --border-radius: 0.375rem;
+  --shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+  --transition: 0.2s cubic-bezier(.4,0,.2,1);
+  --sidebar-width: 250px;
+  --navbar-height: 56px;
+  --font-family: 'Nunito', Arial, sans-serif;
+}
+
+/* ------------------------------------------------------------------------
+   2. Reset & Base Styles
+   ------------------------------------------------------------------------ */
+*, *::before, *::after { box-sizing: border-box; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  font-family: var(--font-family);
+  background: var(--light);
+  color: var(--dark);
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* ------------------------------------------------------------------------
+   3. Typography Utilities
+   ------------------------------------------------------------------------ */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+.text-uppercase { text-transform: uppercase; }
+.text-muted { color: var(--gray) !important; }
+.text-primary { color: var(--primary) !important; }
+.text-success { color: var(--success) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-info { color: var(--info) !important; }
+.text-white { color: var(--white) !important; }
+.fw-bold { font-weight: 700; }
+.fw-medium { font-weight: 500; }
+.fw-normal { font-weight: 400; }
+.fs-1 { font-size: 2.5rem; }
+.fs-2 { font-size: 2rem; }
+.fs-3 { font-size: 1.5rem; }
+.fs-4 { font-size: 1.25rem; }
+.fs-5 { font-size: 1rem; }
+.fs-6 { font-size: 0.875rem; }
+
+/* ------------------------------------------------------------------------
+   4. Spacing Utilities (Margin & Padding)
+   ------------------------------------------------------------------------ */
+.m-0 { margin: 0 !important; }
+.mt-1 { margin-top: 0.25rem !important; }
+.mb-1 { margin-bottom: 0.25rem !important; }
+.ms-1 { margin-left: 0.25rem !important; }
+.me-1 { margin-right: 0.25rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.ms-2 { margin-left: 0.5rem !important; }
+.me-2 { margin-right: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.ms-3 { margin-left: 1rem !important; }
+.me-3 { margin-right: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+.p-0 { padding: 0 !important; }
+.p-1 { padding: 0.25rem !important; }
+.p-2 { padding: 0.5rem !important; }
+.p-3 { padding: 1rem !important; }
+.p-4 { padding: 1.5rem !important; }
+
+/* ------------------------------------------------------------------------
+   5. Layout Utilities (Flex, Grid, Width, Height)
+   ------------------------------------------------------------------------ */
+.d-flex { display: flex !important; }
+.d-inline-flex { display: inline-flex !important; }
+.flex-row { flex-direction: row !important; }
+.flex-column { flex-direction: column !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.justify-content-center { justify-content: center !important; }
+.justify-content-between { justify-content: space-between !important; }
+.justify-content-end { justify-content: flex-end !important; }
+.align-items-center { align-items: center !important; }
+.align-items-start { align-items: flex-start !important; }
+.align-items-end { align-items: flex-end !important; }
+.gap-1 { gap: 0.25rem !important; }
+.gap-2 { gap: 0.5rem !important; }
+.gap-3 { gap: 1rem !important; }
+.w-100 { width: 100% !important; }
+.h-100 { height: 100% !important; }
+.min-vh-100 { min-height: 100vh !important; }
+.overflow-auto { overflow: auto !important; }
+
+/* ------------------------------------------------------------------------
+   6. Buttons
+   ------------------------------------------------------------------------ */
+.btn {
+  display: inline-block;
+  font-weight: 500;
+  color: var(--white);
+  background: var(--primary);
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0.5rem 1.25rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background var(--transition), box-shadow var(--transition);
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  box-shadow: none;
+  user-select: none;
+}
+.btn:hover, .btn:focus {
+  background: var(--primary-hover);
+  color: var(--white);
+  box-shadow: 0 2px 8px rgba(13,110,253,0.08);
+}
+.btn-primary { background: var(--primary); }
+.btn-secondary { background: var(--secondary); }
+.btn-success { background: var(--success); }
+.btn-danger { background: var(--danger); }
+.btn-warning { background: var(--warning); color: var(--dark); }
+.btn-info { background: var(--info); color: var(--dark); }
+.btn-light { background: var(--light); color: var(--dark); }
+.btn-dark { background: var(--dark); }
+.btn-outline-primary { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+.btn-outline-primary:hover { background: var(--primary); color: var(--white); }
+.btn-sm { padding: 0.25rem 0.75rem; font-size: 0.875rem; }
+.btn-lg { padding: 0.75rem 2rem; font-size: 1.25rem; }
+.btn-block { display: block; width: 100%; }
+
+/* ------------------------------------------------------------------------
+   7. Forms & Inputs
+   ------------------------------------------------------------------------ */
+.input-group { display: flex; align-items: stretch; width: 100%; }
+.input-group > .form-control, .input-group > .form-select { flex: 1 1 auto; width: 1%; margin-bottom: 0; }
+.form-control, .form-select, input, select, textarea {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  color: var(--dark);
+  background: var(--white);
+  border: 1px solid var(--gray);
+  border-radius: var(--border-radius);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+.form-control:focus, .form-select:focus, input:focus, select:focus, textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(13,110,253,0.08);
+}
+.form-label { margin-bottom: 0.5rem; font-weight: 500; }
+.form-group { margin-bottom: 1rem; }
+.form-check { display: flex; align-items: center; gap: 0.5rem; }
+.form-check-input { width: 1.1em; height: 1.1em; }
+.form-check-label { margin-bottom: 0; }
+.is-invalid { border-color: var(--danger) !important; }
+.invalid-feedback { color: var(--danger); font-size: 0.875em; }
+
+/* ------------------------------------------------------------------------
+   8. Alerts (Flash Messages)
+   ------------------------------------------------------------------------ */
+.alert {
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid transparent;
+  transition: background var(--transition), color var(--transition);
+}
+.alert-success { background: #d1e7dd; color: #0f5132; border-color: #badbcc; }
+.alert-danger { background: #f8d7da; color: #842029; border-color: #f5c2c7; }
+.alert-warning { background: #fff3cd; color: #664d03; border-color: #ffecb5; }
+.alert-info { background: #cff4fc; color: #055160; border-color: #b6effb; }
+.alert-dismissible { position: relative; }
+.alert .btn-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------------------
+   9. Cards
+   ------------------------------------------------------------------------ */
+.card {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: transform var(--transition), box-shadow var(--transition);
+  border: 1px solid #e9ecef;
+}
+.card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 1rem 2rem rgba(0,0,0,0.10);
+}
+.card-header {
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 0.75rem;
+}
+.card-body { padding: 0; }
+.card-footer {
+  border-top: 1px solid #e9ecef;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+}
+
+/* User Avatar & Role Badge (Reusable) */
+.user-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+.role-badge {
+  font-size: 0.75rem;
+  padding: 0.5em 1em;
+  border-radius: 50rem;
+  background: var(--light);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.role-badge.admin {
+  background: rgba(13,110,253,0.08);
+  color: var(--primary);
+  border: 1px solid rgba(13,110,253,0.2);
+}
+.role-badge.user {
+  background: rgba(13,202,240,0.08);
+  color: var(--info);
+  border: 1px solid rgba(13,202,240,0.2);
+}
+
+/* ------------------------------------------------------------------------
+   10. Sidebar & Navbar Layout
+   ------------------------------------------------------------------------ */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--dark);
+  color: var(--white);
+  position: fixed;
+  top: var(--navbar-height);
+  left: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition);
+}
+.sidebar .nav {
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.sidebar .nav-link {
+  color: var(--white);
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--border-radius);
+  transition: background var(--transition), color var(--transition);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.sidebar .nav-link.active,
+.sidebar .nav-link:hover {
+  background: var(--primary);
+  color: var(--white);
+}
+.sidebar .nav-header {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin: 1.5rem 0 0.5rem 1.25rem;
+  color: #adb5bd;
+}
+.sidebar-footer {
+  margin-top: auto;
+  padding: 1rem;
+  border-top: 1px solid #343a40;
+  background: #23272b;
+}
+
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: var(--navbar-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+}
+.sidebar.show + .sidebar-overlay {
+  display: block;
+}
+
+/* Navbar */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--navbar-height);
+  background: var(--white);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  z-index: 1030;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+}
+.navbar-brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-left: 1rem;
+}
+.navbar .dropdown-menu {
+  min-width: 180px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  background: var(--white);
+  border: 1px solid #e9ecef;
+  padding: 0.5rem 0;
+}
+.navbar .dropdown-item {
+  padding: 0.5rem 1.25rem;
+  color: var(--dark);
+  transition: background var(--transition);
+}
+.navbar .dropdown-item:hover {
+  background: var(--light);
+  color: var(--primary);
+}
+
+/* ------------------------------------------------------------------------
+   11. Modals
+   ------------------------------------------------------------------------ */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1050;
+  left: 0; top: 0; width: 100vw; height: 100vh;
+  overflow: auto;
+  background: rgba(0,0,0,0.4);
+  align-items: center;
+  justify-content: center;
+}
+.modal.show { display: flex; }
+.modal-dialog {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  max-width: 500px;
+  width: 100%;
+  margin: 2rem auto;
+  padding: 2rem;
+  position: relative;
+}
+.modal-header, .modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+}
+.modal-header { border-bottom: 1px solid #e9ecef; }
+.modal-footer { border-top: 1px solid #e9ecef; padding-top: 1rem; }
+.modal-title { font-size: 1.25rem; font-weight: 600; }
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--gray);
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------------------
+   12. DataTable Overrides
+   ------------------------------------------------------------------------ */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.table th, .table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e9ecef;
+  text-align: left;
+}
+.table th {
+  background: #f1f3f5;
+  font-weight: 600;
+  color: var(--dark);
+}
+.table-striped tbody tr:nth-child(odd) {
+  background: #f8f9fa;
+}
+.table-hover tbody tr:hover {
+  background: #e9ecef;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  padding: 0.25rem 0.75rem;
+  margin: 0 0.125rem;
+  border-radius: var(--border-radius);
+  background: var(--light);
+  color: var(--primary);
+  border: 1px solid #e9ecef;
+  transition: background var(--transition), color var(--transition);
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: var(--primary);
+  color: var(--white) !important;
+}
+
+/* ------------------------------------------------------------------------
+   13. Auth Pages (Login/Register/Reset)
+   ------------------------------------------------------------------------ */
+.auth-container {
+  max-width: 400px;
+  margin: 4rem auto;
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 2rem;
+}
+.auth-logo {
+  display: block;
+  margin: 0 auto 2rem auto;
+  width: 80px;
+  height: 80px;
+}
+.auth-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.auth-footer {
+  margin-top: 2rem;
+  text-align: center;
+  color: var(--gray);
+  font-size: 0.95rem;
+}
+
+/* ------------------------------------------------------------------------
+   14. Responsive Design (Mobile First)
+   ------------------------------------------------------------------------ */
+@media (max-width: 992px) {
+  .sidebar {
+    transform: translateX(-100%);
+    position: fixed;
+    z-index: 1050;
+  }
+  .sidebar.show {
+    transform: translateX(0);
+  }
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+  .sidebar-overlay {
+    display: block;
+  }
+}
+@media (max-width: 768px) {
+  .card, .auth-container, .modal-dialog {
+    padding: 1rem;
+  }
+  .navbar {
+    padding: 0 0.5rem;
+  }
+  .sidebar .nav-link {
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* ------------------------------------------------------------------------
+   15. Utility Classes
+   ------------------------------------------------------------------------ */
+.rounded { border-radius: var(--border-radius) !important; }
+.rounded-circle { border-radius: 50% !important; }
+.shadow { box-shadow: var(--shadow) !important; }
+.bg-primary { background: var(--primary) !important; color: var(--white) !important; }
+.bg-secondary { background: var(--secondary) !important; color: var(--white) !important; }
+.bg-success { background: var(--success) !important; color: var(--white) !important; }
+.bg-danger { background: var(--danger) !important; color: var(--white) !important; }
+.bg-warning { background: var(--warning) !important; color: var(--dark) !important; }
+.bg-info { background: var(--info) !important; color: var(--dark) !important; }
+.bg-light { background: var(--light) !important; color: var(--dark) !important; }
+.bg-dark { background: var(--dark) !important; color: var(--white) !important; }
+.border { border: 1px solid #e9ecef !important; }
+.border-top { border-top: 1px solid #e9ecef !important; }
+.border-bottom { border-bottom: 1px solid #e9ecef !important; }
+.border-secondary { border-color: #adb5bd !important; }
+.cursor-pointer { cursor: pointer !important; }
+.transition { transition: all var(--transition) !important; }
+.hide { display: none !important; }
+.show { display: block !important; }

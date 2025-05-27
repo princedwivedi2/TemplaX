@@ -47,12 +47,32 @@
         display: inline-block;
         padding: 0.375rem 0.75rem;
         font-size: 0.875rem;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 0.375rem;
+    }
+
+    div.dataTables_wrapper div.dataTables_length {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0;
     }
 
     div.dataTables_wrapper div.dataTables_length select {
-        width: auto;
+        width: 70px !important;
         display: inline-block;
         margin: 0 0.5rem;
+        padding: 0.375rem 1.75rem 0.375rem 0.75rem;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 0.375rem;
+        background-color: #fff;
+        font-size: 0.875rem;
+    }
+
+    div.dataTables_wrapper div.dataTables_length label {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0;
+        white-space: nowrap;
     }
 
     .dataTables_wrapper .dataTables_paginate {
@@ -152,42 +172,35 @@
     }
 
     /* Action Buttons Styling */
-    .btn-group {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .btn-group .btn {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.875rem;
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.15s ease-in-out;
+        border-radius: 0.375rem;
+        transition: all 0.2s ease-in-out;
+        margin: 0 0.125rem;
     }
 
-    .btn-info {
-        background-color: rgba(13, 202, 240, 0.1);
-        border-color: rgba(13, 202, 240, 0.1);
-        color: #0dcaf0;
+    .action-btn i {
+        font-size: 1rem;
     }
 
-    .btn-info:hover {
-        background-color: rgba(13, 202, 240, 0.2);
-        border-color: rgba(13, 202, 240, 0.2);
-        color: #0dcaf0;
+
+
+    .action-btn.delete-btn {
+        background-color: rgba(var(--bs-danger-rgb), 0.1);
+        border: 1px solid rgba(var(--bs-danger-rgb), 0.1);
+        color: var(--bs-danger);
     }
 
-    .btn-danger {
-        background-color: rgba(220, 53, 69, 0.1);
-        border-color: rgba(220, 53, 69, 0.1);
-        color: #dc3545;
-    }
-
-    .btn-danger:hover {
-        background-color: rgba(220, 53, 69, 0.2);
-        border-color: rgba(220, 53, 69, 0.2);
-        color: #dc3545;
+    .action-btn.delete-btn:hover {
+        background-color: var(--bs-danger);
+        border-color: var(--bs-danger);
+        color: #fff;
+        box-shadow: 0 0.125rem 0.25rem rgba(var(--bs-danger-rgb), 0.4);
     }
 
     /* Modal Styling */
@@ -240,6 +253,30 @@
         width: 1rem;
         height: 1rem;
         border-width: 0.15em;
+    }
+
+    /* Additional Table Styling */
+    .card-body {
+        padding: 1rem 1.5rem;
+    }
+
+    .table > :not(caption) > * > * {
+        padding: 1rem;
+    }
+
+    .table > thead > tr > th {
+        white-space: nowrap;
+    }
+
+    .table > tbody > tr > td {
+        vertical-align: middle;
+    }
+
+    /* Loading State */
+    .dataTables_processing {
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
     }
 </style>
 @endsection
@@ -338,6 +375,33 @@
         </div>
     </div>
 
+
+
+    <!-- Delete User Modal -->
+    <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header align-items-center">
+                    <h5 class="modal-title" id="deleteUserModalLabel">
+                        <i class="bi bi-trash me-2"></i>Delete User
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete <strong id="deleteUserName"></strong>?</p>
+                    <input type="hidden" id="delete_user_id" name="user_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Delete User
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Users Table Card -->
     <div class="card shadow-sm mb-4">
         <div class="card-header py-3 bg-white border-bottom-0">
@@ -388,191 +452,276 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
 <script>
-$(document).ready(function() {
-    // Initialize DataTable with Bootstrap 5 styling
-    const table = $('#usersTable').DataTable({
-        processing: true,
-        serverSide: false,
-        ajax: {
-            url: '{{ route("admin.users.data") }}',
-            type: 'GET',
-            dataSrc: function(json) {
-                // Update total users count
-                $('#totalUsers').html(`<i class="bi bi-people-fill me-1"></i>${json.data.length} Total`);
-                return json.data;
-            }
-        },
-        columns: [
-            { 
-                data: 'id',
-                width: '5%'
+    let table;
+
+    $(document).ready(function() {
+        // Initialize DataTable
+        table = $('#usersTable').DataTable({
+            ajax: {
+                url: '{{ route("admin.users.data") }}',
+                dataSrc: 'data'
             },
-            { 
-                data: 'name',
-                width: '20%'
-            },
-            { 
-                data: 'email',
-                width: '20%'
-            },
-            { 
-                data: 'organization',
-                width: '15%'
-            },
-            { 
-                data: 'roles',
-                width: '15%',
-                render: function(data) {
-                    return data && data.length > 0 
-                        ? data.map(role => `<span class="badge bg-info text-capitalize">${role.name}</span>`).join(' ')
-                        : '<span class="badge bg-secondary">No Role</span>';
-                }
-            },
-            { 
-                data: 'created_at',
-                width: '15%',
-                render: function(data) {
-                    return new Date(data).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                    });
-                }
-            },
-            {
-                data: null,
-                width: '10%',
-                orderable: false,
-                className: 'text-end',
-                render: function(data) {
-                    return `
-                        <div class="btn-group">
-                            <button class="btn btn-info edit-user" title="Edit User" data-id="${data.id}">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-danger delete-user" title="Delete User" data-id="${data.id}">
+            columns: [
+                {
+                    data: 'id',
+                    className: 'text-center'
+                },
+                {
+                    data: 'name',
+                    render: function(data, type, row) {
+                        return `<div class="d-flex align-items-center">
+                                    <i class="bi bi-person-circle text-muted me-2"></i>${data}
+                                </div>`;
+                    }
+                },
+                { 
+                    data: 'email',
+                    render: function(data) {
+                        return `<div class="d-flex align-items-center">
+                                    <i class="bi bi-envelope text-muted me-2"></i>${data}
+                                </div>`;
+                    }
+                },
+                { 
+                    data: 'organization',
+                    render: function(data) {
+                        return `<div class="d-flex align-items-center">
+                                    <i class="bi bi-building text-muted me-2"></i>${data || '-'}
+                                </div>`;
+                    }
+                },
+                {
+                    data: null,
+                    render: function(data, type, row) {
+                        let roleBadge = 'secondary';
+                        let roleName = 'No Role';
+                        
+                        if (row.roles && row.roles.length > 0) {
+                            const role = row.roles[0];
+                            roleName = typeof role === 'object' ? role.name : role;
+                            
+                            roleBadge = roleName.toLowerCase() === 'super-admin' ? 'danger' : 
+                                       roleName.toLowerCase() === 'admin' ? 'primary' : 
+                                       'info';
+                        }
+                        
+                        return `<span class="badge bg-${roleBadge}">${roleName}</span>`;
+                    }
+                },
+                {
+                    data: 'created_at',
+                    render: function(data) {
+                        return new Date(data).toLocaleDateString();
+                    }
+                },
+                {
+                    data: null,
+                    orderable: false,
+                    className: 'text-end',
+                    render: function(data) {
+                        return `<div class="d-flex gap-2 justify-content-end">
+                            <button class="action-btn btn btn-outline-danger delete-user" 
+                                    data-id="${data.id}" 
+                                    data-bs-toggle="tooltip" 
+                                    title="Delete User">
                                 <i class="bi bi-trash"></i>
                             </button>
-                        </div>
-                    `;
+                        </div>`;
+                    }
                 }
-            }
-        ],
-        language: {
-            search: "",
-            searchPlaceholder: "Search users...",
-            lengthMenu: "_MENU_ users per page",
-            info: "Showing _START_ to _END_ of _TOTAL_ users",
-            infoEmpty: "No users found",
-            infoFiltered: "(filtered from _MAX_ total users)"
-        },
-        dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-             "<'row'<'col-sm-12'tr>>" +
-             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-        pageLength: 10,
-        order: [[0, 'desc']]
-    });
-
-    // Save User with improved validation
-    $('#saveUserBtn').on('click', function() {
-        const btn = $(this);
-        const spinner = btn.find('.spinner-border');
-        
-        // Reset previous errors
-        $('.is-invalid').removeClass('is-invalid');
-        $('.invalid-feedback').empty();
-        
-        // Show loading state
-        btn.prop('disabled', true);
-        spinner.removeClass('d-none');
-
-        // Get form data
-        const formData = {
-            name: $('#user_name').val(),
-            email: $('#user_email').val(),
-            organization: $('#user_organization').val(),
-            role: $('#user_role').val(),
-            password: $('#user_password').val(),
-            _token: '{{ csrf_token() }}'
-        };
-
-        // Send AJAX request
-        $.ajax({
-            url: '{{ route("admin.users.store") }}',
-            type: 'POST',
-            data: formData,
-            success: function(response) {
-                // Hide loading state
-                btn.prop('disabled', false);
-                spinner.addClass('d-none');
-
-                if (response.success) {
-                    // Show success message
-                    Swal.fire({
-                        title: 'Success!',
-                        text: response.message || 'User created successfully!',
-                        icon: 'success',
-                        confirmButtonColor: '#0d6efd'
-                    });
-
-                    // Reset form and close modal
-                    $('#addUserForm')[0].reset();
-                    $('#addUserModal').modal('hide');
-
-                    // Reload DataTable
-                    table.ajax.reload();
-                } else {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: response.message || 'Failed to create user.',
-                        icon: 'error',
-                        confirmButtonColor: '#dc3545'
-                    });
-                }
+            ],
+            language: {
+                search: "",
+                searchPlaceholder: "Search users...",
+                lengthMenu: "Show _MENU_",
+                info: "Showing _START_ to _END_ of _TOTAL_ users",
+                infoEmpty: "No users found",
+                infoFiltered: "(filtered from _MAX_ total users)"
             },
-            error: function(xhr) {
-                // Hide loading state
-                btn.prop('disabled', false);
-                spinner.addClass('d-none');
+            dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            drawCallback: function(settings) {
+                // Initialize tooltips
+                $('[data-bs-toggle="tooltip"]').tooltip();
+                
+                // Update total users count
+                const api = this.api();
+                const totalUsers = api.page.info().recordsTotal;
+                $('#totalUsers').html(`<i class="bi bi-people-fill me-1"></i>${totalUsers} Total Users`);
+            },
+        });
 
-                if (xhr.status === 422) {
-                    // Validation errors
-                    const errors = xhr.responseJSON.errors;
-                    Object.keys(errors).forEach(field => {
-                        $(`#user_${field}`).addClass('is-invalid');
-                        $(`#${field}Error`).text(errors[field][0]);
-                    });
-                } else {
+        // Add User Form Submit Handler
+        $('#saveUserBtn').on('click', function() {
+            const btn = $(this);
+            const spinner = btn.find('.spinner-border');
+            
+            // Reset previous errors
+            $('.is-invalid').removeClass('is-invalid');
+            $('.invalid-feedback').empty();
+            
+            // Show loading state
+            btn.prop('disabled', true);
+            spinner.removeClass('d-none');
+
+            // Get form data
+            const formData = {
+                name: $('#user_name').val(),
+                email: $('#user_email').val(),
+                organization: $('#user_organization').val(),
+                role: $('#user_role').val(),
+                password: $('#user_password').val(),
+                _token: '{{ csrf_token() }}'
+            };
+
+            // Send AJAX request
+            $.ajax({
+                url: '{{ route("admin.users.store") }}',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    // Hide loading state
+                    btn.prop('disabled', false);
+                    spinner.addClass('d-none');
+
+                    if (response.success) {
+                        // Show success message
+                        Swal.fire({
+                            title: 'Success!',
+                            text: response.message || 'User created successfully!',
+                            icon: 'success',
+                            confirmButtonColor: '#0d6efd'
+                        });
+
+                        // Reset form and close modal
+                        $('#addUserForm')[0].reset();
+                        $('#addUserModal').modal('hide');
+
+                        // Reload DataTable
+                        table.ajax.reload();
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.message || 'Failed to create user.',
+                            icon: 'error',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    // Hide loading state
+                    btn.prop('disabled', false);
+                    spinner.addClass('d-none');
+
+                    if (xhr.status === 422) {
+                        // Validation errors
+                        const errors = xhr.responseJSON.errors;
+                        Object.keys(errors).forEach(field => {
+                            $(`#user_${field}`).addClass('is-invalid');
+                            $(`#${field}Error`).text(errors[field][0]);
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Failed to create user. Please try again.',
+                            icon: 'error',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    }
+                }
+            });
+        });
+
+
+
+        // Delete User Click Handler
+        $(document).on('click', '.delete-user', function() {
+            const userId = $(this).data('id');
+            const user = table.row($(this).closest('tr')).data();
+            
+            // Set user info in delete modal
+            $('#delete_user_id').val(userId);
+            $('#deleteUserName').text(user.name);
+            
+            // Show delete modal
+            $('#deleteUserModal').modal('show');
+        });
+
+        // Confirm Delete Handler
+        $('#confirmDeleteBtn').on('click', function() {
+            const btn = $(this);
+            const spinner = btn.find('.spinner-border');
+            const userId = $('#delete_user_id').val();
+            
+            // Show loading state
+            btn.prop('disabled', true);
+            spinner.removeClass('d-none');
+
+            // Send AJAX request
+            $.ajax({
+                url: `{{ url('super-admin/users') }}/${userId}`,
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    _method: 'DELETE'
+                },
+                success: function(response) {
+                    // Hide loading state
+                    btn.prop('disabled', false);
+                    spinner.addClass('d-none');
+
+                    if (response.success) {
+                        // Show success message
+                        Swal.fire({
+                            title: 'Success!',
+                            text: response.message || 'User deleted successfully!',
+                            icon: 'success',
+                            confirmButtonColor: '#0d6efd'
+                        });
+
+                        // Close modal
+                        $('#deleteUserModal').modal('hide');
+
+                        // Reload DataTable
+                        table.ajax.reload();
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.message || 'Failed to delete user.',
+                            icon: 'error',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    }
+                },
+                error: function() {
+                    // Hide loading state
+                    btn.prop('disabled', false);
+                    spinner.addClass('d-none');
+
                     Swal.fire({
                         title: 'Error!',
-                        text: 'Failed to create user. Please try again.',
+                        text: 'Failed to delete user. Please try again.',
                         icon: 'error',
                         confirmButtonColor: '#dc3545'
                     });
                 }
+            });
+        });
+
+        // Toggle password visibility
+        $('.toggle-password').on('click', function() {
+            const passwordField = $(this).siblings('input');
+            const icon = $(this).find('i');
+            
+            if (passwordField.attr('type') === 'password') {
+                passwordField.attr('type', 'text');
+                icon.removeClass('bi-eye').addClass('bi-eye-slash');
+            } else {
+                passwordField.attr('type', 'password');
+                icon.removeClass('bi-eye-slash').addClass('bi-eye');
             }
         });
     });
-
-    // Toggle password visibility
-    $('.toggle-password').on('click', function() {
-        const passwordField = $(this).siblings('input');
-        const icon = $(this).find('i');
-        
-        if (passwordField.attr('type') === 'password') {
-            passwordField.attr('type', 'text');
-            icon.removeClass('bi-eye').addClass('bi-eye-slash');
-        } else {
-            passwordField.attr('type', 'password');
-            icon.removeClass('bi-eye-slash').addClass('bi-eye');
-        }
-    });
-
-    // Clear validation errors when input changes
-    $('input, select').on('input change', function() {
-        $(this).removeClass('is-invalid');
-        $(this).siblings('.invalid-feedback').empty();
-    });
-});
 </script>
 @endsection

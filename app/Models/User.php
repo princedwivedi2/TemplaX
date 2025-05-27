@@ -43,4 +43,12 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Get all business cards belonging to the user.
+     */
+    public function businessCards()
+    {
+        return $this->hasMany(BusinessCard::class);
+    }
 }

@@ -16,10 +16,10 @@
     "require-dev": {
         "facade/ignition": "^2.10",
         "fakerphp/faker": "^1.19",
-        "laravel/breeze": "^1.11",
+        "laravel/breeze": "^1.9.3",
         "laravel/sail": "^1.0.1",
         "mockery/mockery": "^1.4.4",
-        "nunomaduro/collision": "^6.1",
+        "nunomaduro/collision": "^5.11",
         "phpunit/phpunit": "^9.5.10"
     },
     "autoload": {
