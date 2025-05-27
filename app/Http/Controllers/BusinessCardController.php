@@ -24,19 +24,19 @@ class BusinessCardController extends Controller
         return view('cards.index', compact('cards'));
     }
 
-    public function create_card()
-    {
-    
-        return view('cards.create');
-    }    public function store(Request $request)
+  public function create_card()
+{
+    $templates = ['modern', 'classic', 'minimal'];
+    return view('cards.create', compact('templates'));
+}
+
+       public function store(Request $request)
     {
         try {
             // Base validation rules with color regex validation
             $rules = [
                 'full_name' => 'required|string|max:255',
-                'primary_color' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-                'accent_color' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-                'job_title' => 'required|string|max:255',
+                'roles' => 'required|string|max:255',
                 'email' => 'required|email|max:255',
                 'phone' => 'required|string|max:20',
                 'company_name' => 'required|string|max:255',
@@ -45,8 +45,6 @@ class BusinessCardController extends Controller
                 'linkedin' => 'nullable|url|max:255',
                 'twitter' => 'nullable|url|max:255',
                 'template' => 'required|string|in:modern,classic,minimal',
-                'primary_color' => 'required|string|max:7',
-                'accent_color' => 'required|string|max:7',
                 'logo' => 'nullable|image|mimes:jpeg,png|max:2048'
             ];
             
@@ -215,98 +213,53 @@ class BusinessCardController extends Controller
         ]);
     }
 
-    public function preview(Request $request)
-    {
-        $data = $request->all();
-        $logoUrl = null;
-        if ($request->hasFile('logo')) {
-            $logo = $request->file('logo');
-            $logoUrl = $logo->storeAs('temp-logos', Str::random(10) . '.' . $logo->getClientOriginalExtension(), 'public');
-            $logoUrl = Storage::url($logoUrl);
-        }
-        return view('cards.preview', [
-            'template' => $data['template'] ?? 'modern',
-            'details' => $data['details'] ?? '',
-            'logoUrl' => $logoUrl,
-        ]);
-    }
+  public function previewTemplate(Request $request)
+{
+    // Validate optional color formats
+    $request->validate([
+        'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+        'accent_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+        'template' => 'required|in:modern,classic,minimal'
+    ]);
 
-    public function downloadTemp(Request $request)
-    {
-        $data = $request->all();
-        $logoPath = null;
-        if ($request->hasFile('logo')) {
-            $logo = $request->file('logo');
-            $logoPath = $logo->storeAs('temp-logos', Str::random(10) . '.' . $logo->getClientOriginalExtension(), 'public');
-            $logoPath = Storage::path($logoPath);
-        }
-        $pdf = app('dompdf.wrapper')->loadView('cards.preview', [
-            'template' => $data['template'] ?? 'modern',
-            'details' => $data['details'] ?? '',
-            'logoUrl' => $logoPath ? asset('storage/' . basename($logoPath)) : null,
-        ]);
-        return response($pdf->output(), 200)
-            ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'attachment; filename="business-card.pdf"');
-    }    public function previewTemplate(Request $request)
-    {
-        // Validate color input format
-        $request->validate([
-            'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'accent_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/']
-        ]);
-
-        $logoUrl = null;
-        if ($request->hasFile('logo')) {
-            try {
-                $file = $request->file('logo');
-                $tmpPath = $file->store('temp-logos', 'public');
-                $logoUrl = asset('storage/' . $tmpPath);
-            } catch (\Exception $e) {
-                // Optionally log the error
-                \Log::error('Logo upload failed for preview: ' . $e->getMessage());
-                $logoUrl = null; // Fallback: no logo
-            }
-        }
-
-        // Clean up old temp logos occasionally
+    $logoUrl = null;
+    if ($request->hasFile('logo')) {
         try {
-            $this->cleanupTempLogos();
+            $file = $request->file('logo');
+            $tmpPath = $file->store('temp-logos', 'public');
+            $logoUrl = asset('storage/' . $tmpPath);
         } catch (\Exception $e) {
-            \Log::error('Failed to cleanup temp logos: ' . $e->getMessage());
-        }
-
-        return view('cards.business-card', [
-            'logoUrl' => $logoUrl,
-            'full_name' => $request->input('full_name'),
-            'job_title' => $request->input('job_title'),
-            'company_name' => $request->input('company_name'),
-            'email' => $request->input('email'),
-            'phone' => $request->input('phone'),
-            'website' => $request->input('website'),
-            'address' => $request->input('address'),
-            'linkedin' => $request->input('linkedin'),
-            'twitter' => $request->input('twitter'),
-            'template' => $request->input('template', 'modern'),
-            'primary_color' => $request->input('primary_color', '#000000'),
-            'accent_color' => $request->input('accent_color', '#333333'),
-            'template' => $request->input('template', 'modern'),
-            'primary_color' => $request->input('primary_color', '#000000'),
-            'accent_color' => $request->input('accent_color', '#333333'),
-        ]);
-    }
-
-    private function cleanupTempLogos()
-    {
-        $tempPath = 'public/temp-logos';
-        $files = Storage::files($tempPath);
-        
-        // Delete files older than 1 hour
-        foreach ($files as $file) {
-            $lastModified = Storage::lastModified($file);
-            if (time() - $lastModified > 3600) {
-                Storage::delete($file);
-            }
+            \Log::error('Logo upload failed for preview: ' . $e->getMessage());
+            $logoUrl = null;
         }
     }
+
+    // Clean up old temp logos occasionally
+    try {
+        $this->cleanupTempLogos();
+    } catch (\Exception $e) {
+        \Log::error('Failed to cleanup temp logos: ' . $e->getMessage());
+    }
+
+    // Extract template name (modern, classic, minimal)
+    $template = $request->input('template', 'modern');
+
+    // Dynamically load Blade template from resources/views/templates/{template}.blade.php
+    return view('templates.' . $template, [
+        'full_name'      => $request->input('full_name'),
+        'job_title'      => $request->input('job_title'),
+        'company_name'   => $request->input('company_name'),
+        'email'          => $request->input('email'),
+        'phone'          => $request->input('phone'),
+        'website'        => $request->input('website'),
+        'address'        => $request->input('address'),
+        'linkedin'       => $request->input('linkedin'),
+        'twitter'        => $request->input('twitter'),
+        'logoUrl'        => $logoUrl,
+        'primary_color'  => $request->input('primary_color', '#000000'),
+        'accent_color'   => $request->input('accent_color', '#333333'),
+    ]);
+}
+
+ 
 }

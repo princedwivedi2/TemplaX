@@ -31,6 +31,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/create', [BusinessCardController::class, 'create_card'])->name('create');
         Route::post('/', [BusinessCardController::class, 'store'])->name('store');
         Route::post('/preview-template', [BusinessCardController::class, 'previewTemplate'])->name('preview-template');
+     // Load individual template view dynamically (used in template dropdown)
+        Route::get('/templates/{template}', function ($template) {
+             $allowed = ['modern', 'classic', 'minimal'];
+
+          if (!in_array($template, $allowed)) {
+          abort(404);
+       }
+
+               return view("cards.templates.$template");
+               })->name('template.view');
+
         
         // Admin routes
         Route::get('/approval', function () {
