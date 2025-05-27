@@ -30,6 +30,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [BusinessCardController::class, 'index'])->name('index');
         Route::get('/create', [BusinessCardController::class, 'create_card'])->name('create');
         Route::post('/', [BusinessCardController::class, 'store'])->name('store');
+        Route::post('/preview-template', [BusinessCardController::class, 'previewTemplate'])->name('preview-template');
         
         // Admin routes
         Route::get('/approval', function () {
@@ -42,6 +43,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{card}/edit', [BusinessCardController::class, 'edit'])->name('edit');
         Route::put('/{card}', [BusinessCardController::class, 'update'])->name('update');
         Route::delete('/{card}', [BusinessCardController::class, 'destroy'])->name('destroy');
+        
+        // AJAX preview and temporary PDF download routes
+        Route::post('/preview', [BusinessCardController::class, 'preview'])->name('preview');
+     
     });
 
     // Admin and Super Admin routes
