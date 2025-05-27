@@ -153,31 +153,6 @@ async function renderPreview() {
     }
 }
 
-async function downloadPdf() {
-    const form = document.getElementById('cardForm');
-    const fd = getFormData(form);
-    try {
-        const resp = await fetch("{{ route('cards.download-temp') }}", {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
-            },
-            body: fd
-        });
-        if (!resp.ok) throw new Error('PDF download failed');
-        const blob = await resp.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'business-card.pdf';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-    } catch (e) {
-        alert('PDF download failed.');
-    }
-}
 
 // Color picker sync
 function setupColorPicker(pickerId, inputId) {

@@ -1,9 +1,7 @@
 @php
 $colors = [
     'modern' => ['bg' => '#ffffff', 'text' => '#333333'],
-    'classic' => ['bg' => '#f8f9fa', 'text' => '#000000'],
-    'minimal' => ['bg' => '#ffffff', 'text' => '#212529']
-];
+   
 
 $templateStyle = $colors[$template] ?? $colors['modern'];
 @endphp
