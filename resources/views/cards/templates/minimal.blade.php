@@ -1,245 +1,178 @@
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
-/* Reset and base styles */
-* {
+body {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f0f0f0;
-    padding: 20px;
-}
-
-/* Minimal template container */
-.minimal-template-container {
+    background: #f8f9fa;
+    font-family: 'Poppins', sans-serif;
+    color: #333;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 400px;
-    padding: 20px;
+    min-height: 100vh;
 }
 
-/* Profile card */
-.minimal-profile-card {
-    width: 350px;
-    min-height: 500px;
-    max-height: 600px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 25px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    padding: 40px 30px;
-    text-align: center;
-    color: white;
-    position: relative;
-    overflow: hidden;
-    margin: 0 auto;
-}
-
-/* Background overlay */
-.minimal-profile-card::before {
+.profile-section-create-wrapper .profile-card::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('/images/Group 5.png') center/cover;
-    opacity: 0.1;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.3);
     z-index: 0;
 }
 
-/* Content wrapper */
-.minimal-content {
+.profile-section-create-wrapper .profile-pic-container,
+.profile-card h1,
+.profile-card p,
+.profile-card .grid {
     position: relative;
     z-index: 1;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
 }
 
-/* Profile picture */
-.minimal-profile-pic {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    margin: 0 auto 20px;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.1);
+.profile-section-create-wrapper .profile-pic-container {
+    border: 3px solid white;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.profile-section-create-wrapper .icon-circle {
+    background-color: rgba(255,255,255,0.15);
+    width: 44px;
+    height: 44px;
     display: flex;
-    align-items: center;
     justify-content: center;
-}
-
-.minimal-profile-pic img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.minimal-profile-pic .default-avatar {
-    font-size: 48px;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-/* Text styles */
-.minimal-name {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 8px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.minimal-role {
-    font-size: 16px;
-    opacity: 0.9;
-    margin-bottom: 4px;
-}
-
-.minimal-company {
-    font-size: 14px;
-    opacity: 0.8;
-    margin-bottom: 30px;
-}
-
-/* Icons grid */
-.minimal-icons-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    max-width: 240px;
-    margin: 0 auto;
-}
-
-.minimal-icon-circle {
-    width: 50px;
-    height: 50px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    display: flex;
     align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    border: 1px solid #fff;
+    transition: transform 0.2s;
 }
 
-.minimal-icon-circle:hover {
-    transform: translateY(-3px);
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+.profile-section-create-wrapper .icon-circle:hover {
+    transform: scale(1.08);
 }
 
-.minimal-icon-circle i {
-    font-size: 20px;
-    color: white;
+.profile-section-create-wrapper .fa-phone { color: #6c5ce7; }
+.profile-section-create-wrapper .fa-envelope { color: #0984e3; }
+.profile-section-create-wrapper .fa-instagram { color: #dd2850; }
+.profile-section-create-wrapper .fa-whatsapp { color: #25D366; }
+.profile-section-create-wrapper .fa-facebook-f { color: #005fda; }
+.profile-section-create-wrapper .fa-telegram-plane { color: #0088CC; }
+.profile-section-create-wrapper .fa-linkedin { color: #0077b5; }
+.profile-section-create-wrapper .fa-twitter { color: #1da1f2; }
+.profile-section-create-wrapper .fa-globe { color: #28a745; }
+
+.profile-section-create-wrapper .margin-bottom-change {
+    margin-bottom: 85px;
 }
 
-/* Specific icon colors on hover */
-.minimal-icon-circle:hover .fa-phone { color: #6c5ce7; }
-.minimal-icon-circle:hover .fa-envelope { color: #0984e3; }
-.minimal-icon-circle:hover .fa-instagram { color: #dd2850; }
-.minimal-icon-circle:hover .fa-whatsapp { color: #25D366; }
-.minimal-icon-circle:hover .fa-facebook-f { color: #005fda; }
-.minimal-icon-circle:hover .fa-telegram-plane { color: #0088CC; }
-.minimal-icon-circle:hover .fa-linkedin { color: #0077b5; }
-.minimal-icon-circle:hover .fa-twitter { color: #1da1f2; }
-.minimal-icon-circle:hover .fa-globe { color: #28a745; }
-
-/* Hidden elements */
-.minimal-hidden {
-    display: none;
-}
-
-/* Responsive design */
-@media (max-width: 480px) {
-    .minimal-profile-card {
-        width: 300px;
-        height: 450px;
-        padding: 30px 20px;
-    }
-
-    .minimal-profile-pic {
-        width: 100px;
-        height: 100px;
-    }
-
-    .minimal-name {
-        font-size: 24px;
-    }
-
-    .minimal-icons-grid {
-        gap: 15px;
-        max-width: 200px;
-    }
-
-    .minimal-icon-circle {
-        width: 45px;
-        height: 45px;
-    }
-
-    .minimal-icon-circle i {
-        font-size: 18px;
-    }
-}
 </style>
 
-<div class="minimal-template-container">
-    <div class="minimal-profile-card">
-        <div class="minimal-content">
-            <!-- Profile Picture -->
-            <div class="minimal-profile-pic">
-                <img id="photo-minimal" src="{{ $logoUrl ?? asset('images/default-profile.svg') }}" alt="{{ $full_name ?? 'Profile' }}">
-            </div>
+  <div class="card-container" style="perspective: 1000px; width: 100%; max-width: 450px; margin: 0 auto;">
+    <div class="card" style="width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-radius: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); overflow: hidden; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 5px 15px rgba(0, 0, 0, 0.2);">
 
-            <!-- Profile Info -->
-            <div class="minimal-profile-info">
-                <h1 id="name-minimal" class="minimal-name">{{ $full_name ?? 'Johnathan Doe' }}</h1>
-                <p id="role-minimal" class="minimal-role">{{ $job_title ?? 'Marketing Expert' }}</p>
-                <p id="company-minimal" class="minimal-company">{{ $company_name ?? 'ABC Company' }}</p>
-            </div>
+        <!-- Glassmorphism effect container -->
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.18); z-index: 1; overflow: hidden;">
 
-            <!-- Contact Icons -->
-            <div class="minimal-icons-grid">
-                <a href="tel:{{ $phone ?? '#' }}" class="minimal-icon-circle" title="Phone">
-                    <i class="fas fa-phone"></i>
-                    <span id="phone-minimal" class="minimal-hidden">{{ $phone ?? '' }}</span>
-                </a>
-                <a href="mailto:{{ $email ?? '#' }}" class="minimal-icon-circle" title="Email">
-                    <i class="fas fa-envelope"></i>
-                    <span id="email-minimal" class="minimal-hidden">{{ $email ?? '' }}</span>
-                </a>
-                <a href="{{ $website ?? '#' }}" class="minimal-icon-circle" title="Website" target="_blank">
-                    <i class="fas fa-globe"></i>
-                    <span id="website-minimal" class="minimal-hidden">{{ $website ?? '' }}</span>
-                </a>
-                <a href="{{ $linkedin ?? '#' }}" class="minimal-icon-circle" title="LinkedIn" target="_blank">
-                    <i class="fab fa-linkedin"></i>
-                    <span id="linkedin-minimal" class="minimal-hidden">{{ $linkedin ?? '' }}</span>
-                </a>
-                <a href="{{ $twitter ?? '#' }}" class="minimal-icon-circle" title="Twitter" target="_blank">
-                    <i class="fab fa-twitter"></i>
-                    <span id="twitter-minimal" class="minimal-hidden">{{ $twitter ?? '' }}</span>
-                </a>
-                <a href="https://wa.me/{{ str_replace(['+', ' ', '-'], '', $phone ?? '') }}" class="minimal-icon-circle" title="WhatsApp" target="_blank">
-                    <i class="fab fa-whatsapp"></i>
-                    <span id="whatsapp-minimal" class="minimal-hidden">{{ $phone ?? '' }}</span>
-                </a>
-            </div>
+            <!-- Decorative elements -->
+            <div style="position: absolute; width: 300px; height: 300px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; top: -150px; right: -100px; z-index: 0;"></div>
+            <div style="position: absolute; width: 200px; height: 200px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; bottom: -100px; left: -50px; z-index: 0;"></div>
+        <!-- Overlay for better text visibility -->
+        <div class="card-overlay"></div>
+            <!-- Content container -->
+            <div style="position: relative; padding: 40px 30px; z-index: 2; text-align: center;">
+                <!-- Profile image with floating effect -->
+                <div style="width: 140px; height: 140px; position: relative; margin: 0 auto 25px; z-index: 3;">
+                    <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(45deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05)); backdrop-filter: blur(5px); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); animation: float 6s ease-in-out infinite; top: 0; left: 0;"></div>
+                    <div style="width: 130px; height: 130px; border-radius: 50%; overflow: hidden; position: absolute; top: 5px; left: 5px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); border: 3px solid rgba(255, 255, 255, 0.3);">
+                        <img id="photo-minimal" src="{{ $logoUrl ?? asset('images/default-profile.svg') }}" alt="{{ $full_name ?? 'Profile' }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                </div>
 
-            <!-- Hidden spans for additional JavaScript binding -->
-            <div class="minimal-hidden">
-                <span id="address-minimal">{{ $address ?? '' }}</span>
-                <span id="instagram-minimal">{{ $instagram ?? '' }}</span>
-                <span id="facebook-minimal">{{ $facebook ?? '' }}</span>
-                <span id="telegram-minimal">{{ $telegram ?? '' }}</span>
+                <!-- Name and title with text shadow for better readability -->
+                <h1 id="name-minimal" style="font-size: 32px; font-weight: 700; margin-bottom: 8px; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.1); letter-spacing: 0.5px;">{{ $full_name ?? 'Johnathan Doe' }}</h1>
+                <div style="width: 60px; height: 3px; background: rgba(255,255,255,0.7); margin: 12px auto 15px; border-radius: 2px;"></div>
+                <p id="role-minimal" style="font-size: 18px; color: rgba(255,255,255,0.95); margin-bottom: 6px; font-weight: 500; letter-spacing: 0.5px;">{{ $job_title ?? 'Marketing Expert' }}</p>
+                <p id="company-minimal" style="font-size: 16px; color: rgba(255,255,255,0.85); margin-bottom: 35px; font-weight: 300;">{{ $company_name ?? 'ABC Company' }}</p>
+                <!-- Social media icons in modern glass effect design -->
+                <div style="display: flex; justify-content: center; gap: 18px; margin-bottom: 25px; flex-wrap: wrap; max-width: 320px; margin-left: auto; margin-right: auto;">
+                    <a href="tel:{{ $phone ?? '#' }}" style="text-decoration: none;">
+                        <div style="width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 50%; background: rgba(255,255,255,0.15); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
+                            <div style="position: absolute; inset: 0; background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); opacity: 0; transition: opacity 0.3s ease;"></div>
+                            <i class="fas fa-phone" style="font-size: 18px; color: white; position: relative; z-index: 2;"></i>
+                            <span id="phone-minimal" style="display:none">{{ $phone ?? '' }}</span>
+                        </div>
+                    </a>
+                    <a href="mailto:{{ $email ?? '#' }}" style="text-decoration: none;">
+                        <div style="width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 50%; background: rgba(255,255,255,0.15); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
+                            <div style="position: absolute; inset: 0; background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); opacity: 0; transition: opacity 0.3s ease;"></div>
+                            <i class="fas fa-envelope" style="font-size: 18px; color: white; position: relative; z-index: 2;"></i>
+                            <span id="email-minimal" style="display:none">{{ $email ?? '' }}</span>
+                        </div>
+                    </a>
+                    <a href="{{ $website ?? '#' }}" target="_blank" style="text-decoration: none;">
+                        <div style="width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 50%; background: rgba(255,255,255,0.15); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
+                            <div style="position: absolute; inset: 0; background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); opacity: 0; transition: opacity 0.3s ease;"></div>
+                            <i class="fas fa-globe" style="font-size: 18px; color: white; position: relative; z-index: 2;"></i>
+                            <span id="website-minimal" style="display:none">{{ $website ?? '' }}</span>
+                        </div>
+                    </a>
+                    <a href="https://wa.me/{{ str_replace(['+', ' ', '-'], '', $phone ?? '') }}" target="_blank" style="text-decoration: none;">
+                        <div style="width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 50%; background: rgba(255,255,255,0.15); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
+                            <div style="position: absolute; inset: 0; background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); opacity: 0; transition: opacity 0.3s ease;"></div>
+                            <i class="fab fa-whatsapp" style="font-size: 18px; color: white; position: relative; z-index: 2;"></i>
+                            <span id="whatsapp-minimal" style="display:none">{{ $phone ?? '' }}</span>
+                        </div>
+                    </a>
+                    <a href="{{ $linkedin ?? '#' }}" target="_blank" style="text-decoration: none;">
+                        <div style="width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 50%; background: rgba(255,255,255,0.15); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
+                            <div style="position: absolute; inset: 0; background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); opacity: 0; transition: opacity 0.3s ease;"></div>
+                            <i class="fab fa-linkedin-in" style="font-size: 18px; color: white; position: relative; z-index: 2;"></i>
+                            <span id="linkedin-minimal" style="display:none">{{ $linkedin ?? '' }}</span>
+                        </div>
+                    </a>
+                    <a href="{{ $twitter ?? '#' }}" target="_blank" style="text-decoration: none;">
+                        <div style="width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 50%; background: rgba(255,255,255,0.15); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
+                            <div style="position: absolute; inset: 0; background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); opacity: 0; transition: opacity 0.3s ease;"></div>
+                            <i class="fab fa-twitter" style="font-size: 18px; color: white; position: relative; z-index: 2;"></i>
+                            <span id="twitter-minimal" style="display:none">{{ $twitter ?? '' }}</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Hidden spans for JavaScript binding -->
+                <div style="display: none;">
+                    <span id="address-minimal">{{ $address ?? '' }}</span>
+                    <span id="instagram-minimal">{{ $instagram ?? '' }}</span>
+                    <span id="facebook-minimal">{{ $facebook ?? '' }}</span>
+                    <span id="telegram-minimal">{{ $telegram ?? '' }}</span>
+                </div>
+
+                <!-- Footer watermark -->
+                <div style="position: absolute; bottom: 15px; width: 100%; text-align: center; left: 0; font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 300; letter-spacing: 1px;">
+                    {{ $full_name ?? 'Johnathan Doe' }} • {{ $company_name ?? 'ABC Company' }}
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+/* Hover effects for social icons */
+a:hover div {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+a:hover div > div {
+    opacity: 1;
+}
+</style>

@@ -9,6 +9,7 @@
                 <label for="template-switch" class="form-label fw-medium">Choose a Template:</label>
                 <select id="template-switch" class="form-select" style="max-width: 300px;">
                     <option value="minimal">Minimal - Modern Glass</option>
+                    <option value="modern">Modern - Business Card</option>
                 </select>
             </div>
 

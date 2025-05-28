@@ -92,31 +92,39 @@ body {
 
   <div class="business-card">
     <div class="left-section">
-      <h1 id="name-classic">{{ $full_name ?? 'Jane Smith' }}</h1>
-      <p id="role-classic">{{ $job_title ?? 'Graphic Designer' }}</p>
-      <img id="photo-classic" src="{{ $logoUrl ?? 'https://via.placeholder.com/80' }}" alt="Logo" class="logo">
+      <div class="profile-image">
+        <img id="photo-classic" src="{{ $logoUrl ?? asset('images/default-profile.png') }}" alt="Profile Image" class="logo">
+      </div>
     </div>
-
     <div class="dotted-line"></div>
-
     <div class="right-section">
-      <div class="contact-item">
-        <i class="fas fa-building"></i> <span id="company-classic">{{ $company_name ?? 'ABC Company' }}</span>
-      </div>
-      <div class="contact-item">
-        <i class="fas fa-envelope"></i> <span id="email-classic">{{ $email ?? 'jane@example.com' }}</span>
-      </div>
-      <div class="contact-item">
-        <i class="fas fa-phone"></i> <span id="phone-classic">{{ $phone ?? '+1 234 567 8900' }}</span>
-      </div>
-      <div class="contact-item">
-        <i class="fas fa-globe"></i> <span id="website-classic">{{ $website ?? 'www.example.com' }}</span>
-      </div>
-      <div class="contact-item">
-        <i class="fas fa-map-marker-alt"></i> <span id="address-classic">{{ $address ?? '123 Main St, City' }}</span>
-      </div>
-      <div class="contact-item">
-        <i class="fab fa-twitter"></i> <span id="twitter-classic">{{ $twitter ?? '@janesmith' }}</span>
+      <h1 id="name-classic" class="name">{{ $full_name ?? 'Your Name' }}</h1>
+      <p id="role-classic" class="job-title">{{ $job_title ?? 'Job Title' }}</p>
+      <p id="company-classic" class="company">{{ $company_name ?? 'Company Name' }}</p>
+      
+      <div class="contact-info">
+        <div class="contact-item">
+          <i class="fas fa-phone"></i>
+          <span id="phone-classic">{{ $phone ?? 'Phone Number' }}</span>
+        </div>
+        <div class="contact-item">
+          <i class="fas fa-envelope"></i>
+          <span id="email-classic">{{ $email ?? 'Email Address' }}</span>
+        </div>
+        <div class="contact-item">
+          <i class="fas fa-globe"></i>
+          <span id="website-classic">{{ $website ?? 'Website' }}</span>
+        </div>
+        <div class="social-links">
+          <a href="{{ $linkedin ?? '#' }}" class="social-link">
+            <i class="fab fa-linkedin"></i>
+            <span id="linkedin-classic" style="display:none">{{ $linkedin ?? '' }}</span>
+          </a>
+          <a href="{{ $twitter ?? '#' }}" class="social-link">
+            <i class="fab fa-twitter"></i>
+            <span id="twitter-classic" style="display:none">{{ $twitter ?? '' }}</span>
+          </a>
+        </div>
       </div>
 
       <div class="curve"></div>

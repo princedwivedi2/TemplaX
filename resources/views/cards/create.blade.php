@@ -8,9 +8,9 @@
             <div class="mb-4">
                 <label for="template-switch" class="form-label fw-medium">Choose a Template:</label>
                 <select id="template-switch" class="form-select" style="max-width: 300px;">
-                    <option value="modern">Modern (Purple)</option>
-                    <option value="minimal">Minimal (Yellow)</option>
-                    <option value="classic">Classic (Blue)</option>
+                    @foreach($templates as $slug => $name)
+                        <option value="{{ $slug }}">{{ $name }}</option>
+                    @endforeach
                 </select>
             </div>
         </div>
@@ -21,7 +21,11 @@
         <div class="col-12 col-lg-6 mb-4 mb-lg-0">
             <div class="card h-100">
                 <div class="card-body d-flex align-items-center justify-content-center" id="template-preview-container">
-                    @include('cards.templates.modern') {{-- default view --}}                </div>
+                    @if(!empty($templates))
+                        @php $firstTemplate = array_key_first($templates); @endphp
+                        @include("cards.templates.{$firstTemplate}") {{-- default view --}}
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -90,7 +94,225 @@ const container = document.getElementById('template-preview-container');
 
 // Helper to keep track of current template
 let currentTemplate = templateSwitch.value;
+@extends('layouts.app-dashboard')
+@section('content')
 
+<div class="container px-4 py-6">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="card-title mb-0">Create Business Card</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form id="create-card-form" method="POST" action="{{ route('cards.store') }}" enctype="multipart/form-data">
+                        @csrf
+
+                        <div class="row">
+                            <!-- Left Column - Form Fields -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="full_name" class="form-label">Full Name *</label>
+                                    <input type="text" class="form-control" id="full_name" name="full_name" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="job_title" class="form-label">Job Title *</label>
+                                    <input type="text" class="form-control" id="job_title" name="job_title" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="company_name" class="form-label">Company Name *</label>
+                                    <input type="text" class="form-control" id="company_name" name="company_name" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email *</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone *</label>
+                                    <input type="text" class="form-control" id="phone" name="phone" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="website" class="form-label">Website</label>
+                                    <input type="url" class="form-control" id="website" name="website" placeholder="https://">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Address</label>
+                                    <input type="text" class="form-control" id="address" name="address">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="linkedin" class="form-label">LinkedIn</label>
+                                    <input type="url" class="form-control" id="linkedin" name="linkedin" placeholder="https://linkedin.com/in/...">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="twitter" class="form-label">Twitter</label>
+                                    <input type="url" class="form-control" id="twitter" name="twitter" placeholder="https://twitter.com/...">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="logo" class="form-label">Logo/Photo</label>
+                                    <input type="file" class="form-control" id="logo" name="logo">
+                                    <small class="text-muted">Recommended size: 400x400px, Max: 2MB</small>
+                                </div>
+                            </div>
+
+                            <!-- Right Column - Template Selection & Preview -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="template" class="form-label">Template *</label>
+                                    <select class="form-select" id="template" name="template" required>
+                                        <option value="">Select a template</option>
+                                        <option value="minimal">Minimal - Modern Glass</option>
+                                        <option value="modern">Modern - Business Card</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="primary_color" class="form-label">Primary Color</label>
+                                    <input type="color" class="form-control form-control-color" id="primary_color" name="primary_color" value="#4e54c8">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="accent_color" class="form-label">Accent Color</label>
+                                    <input type="color" class="form-control form-control-color" id="accent_color" name="accent_color" value="#8f94fb">
+                                </div>
+
+                                <div class="card mt-4">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">Preview</h6>
+                                    </div>
+                                    <div class="card-body p-3" style="min-height: 350px;">
+                                        <div id="template-preview" class="d-flex justify-content-center align-items-center h-100">
+                                            <div class="text-center text-muted">
+                                                <i class="bi bi-eye fs-3"></i>
+                                                <p>Complete the form to see a preview</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <a href="{{ route('cards.index') }}" class="btn btn-light me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create Card</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Preview functionality
+let previewTimer;
+const previewDebounce = 500; // ms
+
+function updatePreview() {
+    clearTimeout(previewTimer);
+
+    previewTimer = setTimeout(() => {
+        const form = document.getElementById('create-card-form');
+        const formData = new FormData(form);
+        const previewContainer = document.getElementById('template-preview');
+
+        // Show loading indicator
+        previewContainer.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+
+        // Only request preview if template is selected
+        if (formData.get('template')) {
+            fetch('{{ route("cards.preview-template") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                previewContainer.innerHTML = html;
+            })
+            .catch(error => {
+                previewContainer.innerHTML = `<div class="alert alert-danger">Error loading preview</div>`;
+                console.error('Preview error:', error);
+            });
+        }
+    }, previewDebounce);
+}
+
+// Add change listeners to all form fields
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('create-card-form');
+    const inputs = form.querySelectorAll('input, select');
+
+    inputs.forEach(input => {
+        input.addEventListener('change', updatePreview);
+        if (input.type === 'text' || input.type === 'email' || input.type === 'url') {
+            input.addEventListener('keyup', updatePreview);
+        }
+    });
+
+    // Form submission handling with AJAX
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalText = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Creating...';
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Success - redirect to cards index
+                window.location.href = '{{ route("cards.index") }}';
+            } else {
+                // Handle validation errors
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+
+                // Display errors
+                if (data.errors) {
+                    Object.keys(data.errors).forEach(field => {
+                        const input = document.getElementById(field);
+                        if (input) {
+                            input.classList.add('is-invalid');
+                            const feedback = document.createElement('div');
+                            feedback.className = 'invalid-feedback';
+                            feedback.textContent = data.errors[field][0];
+                            input.parentNode.appendChild(feedback);
+                        }
+                    });
+                }
+            }
+        })
+        .catch(error => {
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalText;
+            console.error('Submission error:', error);
+        });
+    });
+});
+</script>
+@endsection
 function applyLiveBindings(template) {
     currentTemplate = template;
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BusinessCard;
+use App\Models\Template;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +16,9 @@ class BusinessCardController extends Controller
         $this->middleware('auth');
         // For methods that need verified email
         $this->middleware('verified')->only(['store', 'update', 'destroy']);
-    }    public function index()
+    }
+
+    public function index()
     {
         $cards = Auth::user()->hasRole('super-admin')
             ? BusinessCard::with('user')->get() // Super admin can see all cards
@@ -24,11 +27,11 @@ class BusinessCardController extends Controller
         return view('cards.index', compact('cards'));
     }
 
-  public function create_card()
-{
-    $templates = ['modern', 'classic', 'minimal'];
-    return view('cards.create', compact('templates'));
-}
+    public function create_card()
+    {
+        $templates = Template::getAvailableTemplates();
+        return view('cards.create', compact('templates'));
+    }
 
        public function store(Request $request)
     {
@@ -36,7 +39,7 @@ class BusinessCardController extends Controller
             // Base validation rules with color regex validation
             $rules = [
                 'full_name' => 'required|string|max:255',
-                'roles' => 'required|string|max:255',
+                'job_title' => 'required|string|max:255',
                 'email' => 'required|email|max:255',
                 'phone' => 'required|string|max:20',
                 'company_name' => 'required|string|max:255',
@@ -44,7 +47,9 @@ class BusinessCardController extends Controller
                 'address' => 'nullable|string|max:500',
                 'linkedin' => 'nullable|url|max:255',
                 'twitter' => 'nullable|url|max:255',
-                'template' => 'required|string|in:modern,classic,minimal',
+                'template' => 'required|string|exists:templates,slug',
+                'primary_color' => 'required|string|max:7',
+                'accent_color' => 'required|string|max:7',
                 'logo' => 'nullable|image|mimes:jpeg,png|max:2048'
             ];
 
@@ -53,7 +58,9 @@ class BusinessCardController extends Controller
                 $rules['user_id'] = 'required|exists:users,id';
             }
 
-            $validated = $request->validate($rules);$data = collect($validated)->except('logo')->toArray();
+            $validated = $request->validate($rules);
+
+            $data = collect($validated)->except('logo')->toArray();
 
             // Allow super admin to create cards for other users
             $data['user_id'] = Auth::user()->hasRole('super-admin') && $request->has('user_id')
@@ -103,7 +110,8 @@ class BusinessCardController extends Controller
     }
 
     public function show(BusinessCard $card)
-    {        // Check if the user is authorized to view this card
+    {
+        // Check if the user is authorized to view this card
         if (!Auth::user()->hasRole('super-admin') && $card->user_id !== Auth::id()) {
             abort(403);
         }
@@ -112,7 +120,8 @@ class BusinessCardController extends Controller
     }
 
     public function edit(BusinessCard $card)
-    {        // Check if the user is authorized to edit this card
+    {
+        // Check if the user is authorized to edit this card
         if (!Auth::user()->hasRole('super-admin') && $card->user_id !== Auth::id()) {
             abort(403);
         }
@@ -123,7 +132,7 @@ class BusinessCardController extends Controller
     public function update(Request $request, BusinessCard $card)
     {
         // Check if the user is authorized to update this card
-        if ($card->user_id !== Auth::id()) {
+        if (!Auth::user()->hasRole('super-admin') && $card->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -137,7 +146,7 @@ class BusinessCardController extends Controller
             'address' => 'nullable|string|max:500',
             'linkedin' => 'nullable|url|max:255',
             'twitter' => 'nullable|url|max:255',
-            'template' => 'required|string|in:modern,classic,minimal',
+            'template' => 'required|string|exists:templates,slug',
             'primary_color' => 'required|string|max:7',
             'accent_color' => 'required|string|max:7',
             'logo' => 'nullable|image|mimes:jpeg,png|max:2048'
@@ -175,7 +184,8 @@ class BusinessCardController extends Controller
     }
 
     public function destroy(BusinessCard $card)
-    {        // Check if the user is authorized to delete this card
+    {
+        // Check if the user is authorized to delete this card
         if (!Auth::user()->hasRole('super-admin') && $card->user_id !== Auth::id()) {
             abort(403);
         }
@@ -218,7 +228,7 @@ class BusinessCardController extends Controller
     // Validate optional color formats
     $request->validate([
 
-        'template' => 'required|in:modern,classic,minimal'
+        'template' => 'required|exists:templates,slug'
     ]);
 
     $logoUrl = null;

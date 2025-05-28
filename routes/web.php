@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BusinessCardController;
+use App\Http\Controllers\TemplateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,25 +34,25 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/preview-template', [BusinessCardController::class, 'previewTemplate'])->name('preview-template');
      // Load individual template view dynamically (used in template dropdown)
         Route::get('/templates/{template}', function ($template) {
-             $allowed = ['modern', 'classic', 'minimal'];
+            $templateModel = \App\Models\Template::where('slug', $template)->where('is_active', true)->first();
 
-          if (!in_array($template, $allowed)) {
-          abort(404);
-       }
+            if (!$templateModel) {
+                abort(404);
+            }
 
-               return view("cards.templates.$template", [
-                   'full_name' => '',
-                   'job_title' => '',
-                   'company_name' => '',
-                   'email' => '',
-                   'phone' => '',
-                   'website' => '',
-                   'address' => '',
-                   'linkedin' => '',
-                   'twitter' => '',
-                   'logoUrl' => null
-               ]);
-               })->name('template.view');
+            return view($templateModel->view_path, [
+                'full_name' => '',
+                'job_title' => '',
+                'company_name' => '',
+                'email' => '',
+                'phone' => '',
+                'website' => '',
+                'address' => '',
+                'linkedin' => '',
+                'twitter' => '',
+                'logoUrl' => null
+            ]);
+        })->name('template.view');
 
 
         // Admin routes
@@ -71,13 +72,27 @@ Route::middleware(['auth'])->group(function () {
 
     });
 
+    // Template Management Routes
+    Route::middleware(['auth', 'role:admin|super-admin'])->group(function () {
+        Route::prefix('templates')->name('templates.')->group(function () {
+            Route::get('/', [TemplateController::class, 'index'])->name('index');
+            Route::get('/create', [TemplateController::class, 'create'])->name('create');
+            Route::post('/', [TemplateController::class, 'store'])->name('store');
+            Route::get('/{template}', [TemplateController::class, 'show'])->name('show');
+            Route::get('/{template}/edit', [TemplateController::class, 'edit'])->name('edit');
+            Route::put('/{template}', [TemplateController::class, 'update'])->name('update');
+            Route::delete('/{template}', [TemplateController::class, 'destroy'])->name('destroy');
+            Route::post('/{template}/toggle-status', [TemplateController::class, 'toggleStatus'])->name('toggle-status');
+            Route::get('/{template}/preview', [TemplateController::class, 'preview'])->name('preview');
+        });
+
+        // API Routes for templates
+        Route::get('/api/templates/available', [TemplateController::class, 'getAvailable'])->name('api.templates.available');
+    });
+
     // Admin and Super Admin routes
     Route::middleware(['auth', 'role:admin|super-admin'])->group(function () {
         Route::prefix('admin')->group(function () {
-            Route::get('/templates', function () {
-                return view('dashboard.index', ['activeTab' => 'templates']);
-            })->name('templates.index');
-
             Route::get('/users', function () {
                 return view('dashboard.index', ['activeTab' => 'users']);
             })->name('users.index');

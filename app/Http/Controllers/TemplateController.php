@@ -197,9 +197,10 @@ class TemplateController extends Controller
             'address' => '123 Main St, City',
             'linkedin' => 'linkedin.com/in/johndoe',
             'twitter' => 'twitter.com/johndoe',
-            'logoUrl' => null
+            'logoUrl' => asset('images/default-profile.svg')
         ];
 
-        return view($template->view_path, $sampleData);
+        $viewPath = 'cards.templates.' . $template->slug;
+        return view($viewPath, $sampleData);
     }
 }

@@ -50,6 +50,38 @@
             left: 0;
             z-index: 1000;
             transition: transform 0.3s ease-in-out;
+            overflow-y: auto;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            margin: 0.125rem 0.5rem;
+            transition: all 0.2s ease-in-out;
+            font-weight: 500;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(2px);
+        }
+
+        .sidebar .nav-link.active {
+            background-color: #0d6efd;
+            color: white;
+            box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
+        }
+
+        .sidebar .nav-header {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
         }
 
         /* Main Content Area */
@@ -182,29 +214,54 @@
                         </li>
 
                         <!-- Business Card Section -->
-                        <li class="nav-item mt-2">
-                            <span class="nav-header text-uppercase text-white small d-block py-2">Cards</span>
+                        <li class="nav-item mt-3">
+                            <span class="nav-header text-uppercase text-white-50 small d-block py-2 px-3">Business Cards</span>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('cards.index') }}" class="nav-link text-white {{ request()->routeIs('cards.index') ? 'active' : '' }}">
-                                <i class="bi bi-credit-card-2-front me-2"></i> {{ Auth::user()->hasRole('super-admin') ? 'All Cards' : 'My Cards' }}
+                            <a href="{{ route('cards.index') }}" class="nav-link text-white d-flex align-items-center {{ request()->routeIs('cards.index') ? 'active' : '' }}">
+                                <i class="bi bi-credit-card-2-front me-3" style="width: 20px; text-align: center;"></i>
+                                <span>{{ Auth::user()->hasRole('super-admin') ? 'All Cards' : 'My Cards' }}</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('cards.create') }}" class="nav-link text-white d-flex align-items-center {{ request()->routeIs('cards.create') ? 'active' : '' }}">
+                                <i class="bi bi-plus-circle me-3" style="width: 20px; text-align: center;"></i>
+                                <span>Create Card</span>
                             </a>
                         </li>
 
-                        @if(Auth::user()->hasRole('admin'))
-                            @if(Auth::user()->hasRole('super-admin'))
-                            <li class="nav-header text-uppercase text-white-50 small mt-4 mb-2">Super Admin</li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.users.index') }}" class="nav-link text-white {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                                    <i class="bi bi-people me-2"></i> Manage Users
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('settings.index') }}" class="nav-link text-white {{ request()->routeIs('settings.*') ? 'active' : '' }}">
-                                    <i class="bi bi-gear me-2"></i> Settings
-                                </a>
-                            </li>
-                            @endif
+                        <!-- Templates Section -->
+                        @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('super-admin'))
+                        <li class="nav-item mt-3">
+                            <span class="nav-header text-uppercase text-white-50 small d-block py-2 px-3">Templates</span>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('templates.index') }}" class="nav-link text-white d-flex align-items-center {{ request()->routeIs('templates.*') ? 'active' : '' }}">
+                                <i class="bi bi-grid-3x3-gap me-3" style="width: 20px; text-align: center;"></i>
+                                <span>Manage Templates</span>
+                            </a>
+                        </li>
+                        @endif
+
+                        <!-- Admin Section -->
+                        @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('super-admin'))
+                        <li class="nav-item mt-3">
+                            <span class="nav-header text-uppercase text-white-50 small d-block py-2 px-3">Administration</span>
+                        </li>
+                        @if(Auth::user()->hasRole('super-admin'))
+                        <li class="nav-item">
+                            <a href="{{ route('admin.users.index') }}" class="nav-link text-white d-flex align-items-center {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                                <i class="bi bi-people me-3" style="width: 20px; text-align: center;"></i>
+                                <span>Manage Users</span>
+                            </a>
+                        </li>
+                        @endif
+                        <li class="nav-item">
+                            <a href="{{ route('settings.index') }}" class="nav-link text-white d-flex align-items-center {{ request()->routeIs('settings.*') ? 'active' : '' }}">
+                                <i class="bi bi-gear me-3" style="width: 20px; text-align: center;"></i>
+                                <span>Settings</span>
+                            </a>
+                        </li>
                         @endif
                     </ul>
                 </div>
