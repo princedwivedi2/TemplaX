@@ -39,10 +39,21 @@ Route::middleware(['auth'])->group(function () {
           abort(404);
        }
 
-               return view("cards.templates.$template");
+               return view("cards.templates.$template", [
+                   'full_name' => '',
+                   'job_title' => '',
+                   'company_name' => '',
+                   'email' => '',
+                   'phone' => '',
+                   'website' => '',
+                   'address' => '',
+                   'linkedin' => '',
+                   'twitter' => '',
+                   'logoUrl' => null
+               ]);
                })->name('template.view');
 
-        
+
         // Admin routes
         Route::get('/approval', function () {
             return view('dashboard.index', ['activeTab' => 'approvals']);
@@ -54,10 +65,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{card}/edit', [BusinessCardController::class, 'edit'])->name('edit');
         Route::put('/{card}', [BusinessCardController::class, 'update'])->name('update');
         Route::delete('/{card}', [BusinessCardController::class, 'destroy'])->name('destroy');
-        
+
         // AJAX preview and temporary PDF download routes
         Route::post('/preview', [BusinessCardController::class, 'preview'])->name('preview');
-     
+
     });
 
     // Admin and Super Admin routes

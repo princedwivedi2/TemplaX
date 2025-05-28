@@ -27,45 +27,53 @@
 
         {{-- Form (Right Side) --}}
         <div class="col-12 col-lg-6">
-            <div class="card">
+            <div class="card h-100">
                 <div class="card-body">
-                    <form class="row g-3">
+                    <h5 class="card-title mb-4">Business Card Information</h5>
+                    <form id="card-form" class="row g-3">
                         <div class="col-12">
-                            <label for="name" class="form-label">Full Name</label>
-                            <input type="text" id="name" placeholder="Enter your full name" class="form-control">
+                            <label for="full_name" class="form-label">Full Name</label>
+                            <input type="text" id="full_name" name="full_name" placeholder="Enter your full name" class="form-control">
                         </div>
                         <div class="col-12">
-                            <label for="role" class="form-label">Role</label>
-                            <input type="text" id="role" placeholder="Enter your role" class="form-control">
+                            <label for="job_title" class="form-label">Job Title</label>
+                            <input type="text" id="job_title" name="job_title" placeholder="Enter your job title" class="form-control">
                         </div>
-                       
-                         <div class="col-12">
+                        <div class="col-12">
+                            <label for="company_name" class="form-label">Company Name</label>
+                            <input type="text" id="company_name" name="company_name" placeholder="Enter company name" class="form-control">
+                        </div>
+                        <div class="col-12">
                             <label for="email" class="form-label">Email</label>
-                            <input type="text" id="email" placeholder="Enter your Email" class="form-control">
+                            <input type="email" id="email" name="email" placeholder="Enter your email" class="form-control">
                         </div>
-                         <div class="col-12">
+                        <div class="col-12">
                             <label for="phone" class="form-label">Phone</label>
-                            <input type="text" id="phone" placeholder="Enter your Phone " class="form-control">
-                        </div> 
+                            <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" class="form-control">
+                        </div>
                         <div class="col-12">
                             <label for="website" class="form-label">Website</label>
-                            <input type="text" id="website" placeholder="Enter company Website" class="form-control">
+                            <input type="url" id="website" name="website" placeholder="Enter your website" class="form-control">
                         </div>
                         <div class="col-12">
                             <label for="address" class="form-label">Address</label>
-                            <input type="text" id="address" placeholder="Enter your Address" class="form-control">
-                        </div>
-                         <div class="col-12">
-                            <label for="company" class="form-label">Company</label>
-                            <input type="text" id="company" placeholder="Enter company name" class="form-control">
+                            <textarea id="address" name="address" placeholder="Enter your address" class="form-control" rows="2"></textarea>
                         </div>
                         <div class="col-12">
-                            <label for="photo" class="form-label">Photo</label>
-                            <input type="file" id="photo" class="form-control" accept="image/*">
+                            <label for="linkedin" class="form-label">LinkedIn</label>
+                            <input type="url" id="linkedin" name="linkedin" placeholder="Enter your LinkedIn URL" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label for="twitter" class="form-label">Twitter</label>
+                            <input type="url" id="twitter" name="twitter" placeholder="Enter your Twitter URL" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label for="logo" class="form-label">Logo/Photo</label>
+                            <input type="file" id="logo" name="logo" class="form-control" accept="image/*">
                         </div>
                         <div class="col-12 mt-4">
-                            <button id="download" class="btn btn-primary w-100">
-                                <i class="bi bi-download me-2"></i>Download PDF
+                            <button type="button" id="download" class="btn btn-primary w-100">
+                                <i class="bi bi-eye me-2"></i>Preview Card
                             </button>
                         </div>
                     </form>
@@ -85,52 +93,78 @@ let currentTemplate = templateSwitch.value;
 
 function applyLiveBindings(template) {
     currentTemplate = template;
-    const map = {
-        name: document.getElementById(`name-${template}`),
-        role: document.getElementById(`role-${template}`),
-        company: document.getElementById(`company-${template}`),
-        photo: document.getElementById(`photo-${template}`),
-        email: document.getElementById(`email-${template}`),
-        phone: document.getElementById(`phone-${template}`),
-        website: document.getElementById(`website-${template}`),
-        address: document.getElementById(`address-${template}`),
-        twitter: document.getElementById(`twitter-${template}`)
-    };
-    const nameInput = document.getElementById('name');
-    const roleInput = document.getElementById('role');
-    const companyInput = document.getElementById('company');
-    const photoInput = document.getElementById('photo');
-    // Add new input fields for email, phone, website, address, twitter
+
+    // Get form inputs
+    const fullNameInput = document.getElementById('full_name');
+    const jobTitleInput = document.getElementById('job_title');
+    const companyNameInput = document.getElementById('company_name');
     const emailInput = document.getElementById('email');
     const phoneInput = document.getElementById('phone');
     const websiteInput = document.getElementById('website');
     const addressInput = document.getElementById('address');
+    const linkedinInput = document.getElementById('linkedin');
     const twitterInput = document.getElementById('twitter');
-    // Set initial values
-    if (map.name) map.name.textContent = nameInput.value;
-    if (map.role) map.role.textContent = roleInput.value;
-    if (map.company) map.company.textContent = companyInput.value;
-    if (map.email && emailInput) map.email.textContent = emailInput.value;
-    if (map.phone && phoneInput) map.phone.textContent = phoneInput.value;
-    if (map.website && websiteInput) map.website.textContent = websiteInput.value;
-    if (map.address && addressInput) map.address.textContent = addressInput.value;
-    if (map.twitter && twitterInput) map.twitter.textContent = twitterInput.value;
-    // Bind events
-    nameInput.oninput = () => { if (map.name) map.name.textContent = nameInput.value; };
-    roleInput.oninput = () => { if (map.role) map.role.textContent = roleInput.value; };
-    companyInput.oninput = () => { if (map.company) map.company.textContent = companyInput.value; };
-    if (emailInput) emailInput.oninput = () => { if (map.email) map.email.textContent = emailInput.value; };
-    if (phoneInput) phoneInput.oninput = () => { if (map.phone) map.phone.textContent = phoneInput.value; };
-    if (websiteInput) websiteInput.oninput = () => { if (map.website) map.website.textContent = websiteInput.value; };
-    if (addressInput) addressInput.oninput = () => { if (map.address) map.address.textContent = addressInput.value; };
-    if (twitterInput) twitterInput.oninput = () => { if (map.twitter) map.twitter.textContent = twitterInput.value; };
-    photoInput.onchange = (e) => {
-        if (map.photo && e.target.files[0]) {
-            const reader = new FileReader();
-            reader.onload = () => map.photo.src = reader.result;
-            reader.readAsDataURL(e.target.files[0]);
+    const logoInput = document.getElementById('logo');
+
+    // Template element mapping - handle different ID patterns
+    const getTemplateElement = (field) => {
+        // Try different ID patterns for each template
+        const patterns = [
+            `${field}-${template}`,
+            `${field}-modern`, // fallback for minimal template
+            field
+        ];
+
+        for (const pattern of patterns) {
+            const element = document.getElementById(pattern);
+            if (element) return element;
+        }
+        return null;
+    };
+
+    // Set initial values and bind events
+    const bindField = (input, fieldName) => {
+        if (!input) return;
+
+        const templateElement = getTemplateElement(fieldName);
+        if (templateElement) {
+            // Set initial value
+            templateElement.textContent = input.value || '';
+
+            // Bind input event
+            input.oninput = () => {
+                templateElement.textContent = input.value || '';
+            };
         }
     };
+
+    // Bind all fields
+    bindField(fullNameInput, 'name');
+    bindField(jobTitleInput, 'role');
+    bindField(companyNameInput, 'company');
+    bindField(emailInput, 'email');
+    bindField(phoneInput, 'phone');
+    bindField(websiteInput, 'website');
+    bindField(addressInput, 'address');
+    bindField(linkedinInput, 'linkedin');
+    bindField(twitterInput, 'twitter');
+
+    // Handle logo/photo upload
+    if (logoInput) {
+        logoInput.onchange = (e) => {
+            if (e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    // Try different photo element patterns
+                    const photoElement = getTemplateElement('photo') || getTemplateElement('logo');
+                    if (photoElement && photoElement.tagName === 'IMG') {
+                        photoElement.src = reader.result;
+                    }
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        };
+    }
 }
 
 templateSwitch.addEventListener('change', async function () {
@@ -138,12 +172,89 @@ templateSwitch.addEventListener('change', async function () {
     try {
         const res = await fetch(`/cards/templates/${template}`);
         if (!res.ok) throw new Error('Failed to load template');
-        container.innerHTML = res.text ? await res.text() : '';
-        applyLiveBindings(template);
+        const html = await res.text();
+        container.innerHTML = html;
+
+        // Apply bindings after template is loaded
+        setTimeout(() => {
+            applyLiveBindings(template);
+        }, 100);
     } catch (error) {
-        alert('Failed to load template.');
+        console.error('Template loading error:', error);
+        alert('Failed to load template. Please try again.');
     }
 });
+
+// Preview functionality (temporary - will be replaced with PDF generation later)
+document.getElementById('download').addEventListener('click', async function() {
+    const formData = new FormData(document.getElementById('card-form'));
+    formData.append('template', currentTemplate);
+
+    try {
+        const response = await fetch('/cards/preview-template', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+
+        if (response.ok) {
+            // Open preview in new window
+            const html = await response.text();
+            const newWindow = window.open('', '_blank', 'width=800,height=600');
+            newWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Business Card Preview</title>
+                    <style>
+                        body { margin: 0; padding: 20px; background: #f0f0f0; }
+                        .preview-container {
+                            background: white;
+                            padding: 20px;
+                            border-radius: 8px;
+                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                            max-width: 800px;
+                            margin: 0 auto;
+                        }
+                        .actions {
+                            text-align: center;
+                            margin-bottom: 20px;
+                        }
+                        .btn {
+                            background: #007bff;
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            margin: 0 5px;
+                        }
+                        .btn:hover { background: #0056b3; }
+                    </style>
+                </head>
+                <body>
+                    <div class="preview-container">
+                        <div class="actions">
+                            <button class="btn" onclick="window.print()">Print</button>
+                            <button class="btn" onclick="window.close()">Close</button>
+                        </div>
+                        ${html}
+                    </div>
+                </body>
+                </html>
+            `);
+            newWindow.document.close();
+        } else {
+            throw new Error('Failed to generate preview');
+        }
+    } catch (error) {
+        console.error('Preview error:', error);
+        alert('Failed to generate preview. Please try again.');
+    }
+});
+
 // Initial binding
 applyLiveBindings(currentTemplate);
 </script>

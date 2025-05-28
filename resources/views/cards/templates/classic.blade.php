@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
 body {
   margin: 0;
@@ -91,31 +92,31 @@ body {
 
   <div class="business-card">
     <div class="left-section">
-      <h1 id="name-classic">Jane Smith</h1>
-      <p id="role-classic">Graphic Designer</p>
-      <img id="photo-classic" src="https://via.placeholder.com/80" alt="Logo" class="logo">
+      <h1 id="name-classic">{{ $full_name ?? 'Jane Smith' }}</h1>
+      <p id="role-classic">{{ $job_title ?? 'Graphic Designer' }}</p>
+      <img id="photo-classic" src="{{ $logoUrl ?? 'https://via.placeholder.com/80' }}" alt="Logo" class="logo">
     </div>
 
     <div class="dotted-line"></div>
 
     <div class="right-section">
       <div class="contact-item">
-        <i class="fas fa-building"></i> <span id="company-classic"></span>
+        <i class="fas fa-building"></i> <span id="company-classic">{{ $company_name ?? 'ABC Company' }}</span>
       </div>
       <div class="contact-item">
-        <i class="fas fa-envelope"></i> <span id="email-classic"></span>
+        <i class="fas fa-envelope"></i> <span id="email-classic">{{ $email ?? 'jane@example.com' }}</span>
       </div>
       <div class="contact-item">
-        <i class="fas fa-phone"></i> <span id="phone-classic"></span>
+        <i class="fas fa-phone"></i> <span id="phone-classic">{{ $phone ?? '+1 234 567 8900' }}</span>
       </div>
       <div class="contact-item">
-        <i class="fas fa-globe"></i> <span id="website-classic"></span>
+        <i class="fas fa-globe"></i> <span id="website-classic">{{ $website ?? 'www.example.com' }}</span>
       </div>
       <div class="contact-item">
-        <i class="fas fa-map-marker-alt"></i> <span id="address-classic"></span>
+        <i class="fas fa-map-marker-alt"></i> <span id="address-classic">{{ $address ?? '123 Main St, City' }}</span>
       </div>
       <div class="contact-item">
-        <i class="fab fa-twitter"></i> <span id="twitter-classic"></span>
+        <i class="fab fa-twitter"></i> <span id="twitter-classic">{{ $twitter ?? '@janesmith' }}</span>
       </div>
 
       <div class="curve"></div>

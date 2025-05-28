@@ -17,10 +17,10 @@ class BusinessCardController extends Controller
         $this->middleware('verified')->only(['store', 'update', 'destroy']);
     }    public function index()
     {
-        $cards = Auth::user()->hasRole('super-admin') 
+        $cards = Auth::user()->hasRole('super-admin')
             ? BusinessCard::with('user')->get() // Super admin can see all cards
             : BusinessCard::where('user_id', Auth::id())->get(); // Others see only their cards
-        
+
         return view('cards.index', compact('cards'));
     }
 
@@ -47,19 +47,19 @@ class BusinessCardController extends Controller
                 'template' => 'required|string|in:modern,classic,minimal',
                 'logo' => 'nullable|image|mimes:jpeg,png|max:2048'
             ];
-            
+
             // Add user_id validation for super admin
             if (Auth::user()->hasRole('super-admin')) {
                 $rules['user_id'] = 'required|exists:users,id';
             }
-            
+
             $validated = $request->validate($rules);$data = collect($validated)->except('logo')->toArray();
-            
+
             // Allow super admin to create cards for other users
-            $data['user_id'] = Auth::user()->hasRole('super-admin') && $request->has('user_id') 
-                ? $request->user_id 
+            $data['user_id'] = Auth::user()->hasRole('super-admin') && $request->has('user_id')
+                ? $request->user_id
                 : Auth::id();
-                
+
             $data['card_id'] = Str::uuid();
 
             try {
@@ -152,7 +152,7 @@ class BusinessCardController extends Controller
                 if ($card->logo_path) {
                     Storage::disk('public')->delete($card->logo_path);
                 }
-                
+
                 $logoPath = $request->file('logo')->store('card-logos', 'public');
                 $data['logo_path'] = $logoPath;
             }
@@ -203,9 +203,9 @@ class BusinessCardController extends Controller
 
     public function download(BusinessCard $card)
     {
-      
+
         // You could generate a PDF here using a library like dompdf
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Card download functionality will be implemented here',
@@ -217,8 +217,7 @@ class BusinessCardController extends Controller
 {
     // Validate optional color formats
     $request->validate([
-        'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-        'accent_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+
         'template' => 'required|in:modern,classic,minimal'
     ]);
 
@@ -244,8 +243,8 @@ class BusinessCardController extends Controller
     // Extract template name (modern, classic, minimal)
     $template = $request->input('template', 'modern');
 
-    // Dynamically load Blade template from resources/views/templates/{template}.blade.php
-    return view('templates.' . $template, [
+    // Dynamically load Blade template from resources/views/cards/templates/{template}.blade.php
+    return view('cards.templates.' . $template, [
         'full_name'      => $request->input('full_name'),
         'job_title'      => $request->input('job_title'),
         'company_name'   => $request->input('company_name'),
@@ -256,10 +255,26 @@ class BusinessCardController extends Controller
         'linkedin'       => $request->input('linkedin'),
         'twitter'        => $request->input('twitter'),
         'logoUrl'        => $logoUrl,
-        'primary_color'  => $request->input('primary_color', '#000000'),
-        'accent_color'   => $request->input('accent_color', '#333333'),
     ]);
 }
 
- 
+    /**
+     * Clean up temporary logo files older than 1 hour
+     */
+    private function cleanupTempLogos()
+    {
+        $tempDir = storage_path('app/public/temp-logos');
+        if (!is_dir($tempDir)) {
+            return;
+        }
+
+        $files = glob($tempDir . '/*');
+        $oneHourAgo = time() - 3600;
+
+        foreach ($files as $file) {
+            if (is_file($file) && filemtime($file) < $oneHourAgo) {
+                unlink($file);
+            }
+        }
+    }
 }
