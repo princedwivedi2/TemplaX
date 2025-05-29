@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;400&display=swap" rel="stylesheet">
 <style>
 body {
   margin: 0;
@@ -7,126 +7,127 @@ body {
   font-family: 'Segoe UI', sans-serif;
 }
 
-.business-card {
-  width: 700px;
-  height: 350px;
-  background: white;
-  display: flex;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
+.portrait-classic-card {
+  width: 320px;
+  height: 540px;
+  background: #232323;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  padding: 0 28px 32px 28px;
   position: relative;
-  margin: 50px auto;
-}
-
-.left-section {
-  flex: 1;
-  background: black;
-  color: white;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  padding: 20px;
+  justify-content: flex-start;
 }
-
-.left-section h1 {
-  font-size: 32px;
-  margin: 0;
-}
-
-.left-section p {
-  font-size: 18px;
-  margin-top: 10px;
-}
-
-.right-section {
-  flex: 2;
-  padding: 30px;
-  background: white;
-  color: #5a4e4e;
-  position: relative;
-}
-
-.contact-item {
-  margin: 10px 0;
-  display: flex;
-  align-items: center;
-  font-size: 16px;
-}
-
-.contact-item i {
-  margin-right: 15px;
-  color: #c0392b;
-  font-size: 20px;
-  width: 25px;
-}
-
-.curve {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 80px;
+.pcc-top-bar {
   width: 100%;
-  background: linear-gradient(to right, black, red, #d3b9b9);
-  clip-path: ellipse(100% 100% at 50% 100%);
-}
-
-.dotted-line {
+  height: 16px;
+  background: #ff7f2a;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
   position: absolute;
-  left: 33%;
-  top: 20px;
-  bottom: 20px;
-  width: 1px;
-  border-left: 2px dotted #a44;
+  top: 0; left: 0;
 }
-
-.logo {
-  margin-top: 20px;
-  max-width: 80px;
-  max-height: 80px;
-  object-fit: contain;
+.pcc-logo {
+  margin-top: 36px;
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-    /* Paste same CSS from previous answer here */
-  </style>
-
-  <div class="business-card">
-    <div class="left-section">
-      <div class="profile-image">
-        <img id="photo-classic" src="{{ $logoUrl ?? asset('images/default-profile.png') }}" alt="Profile Image" class="logo">
-      </div>
+.pcc-logo-icon {
+  font-size: 2.1rem;
+  color: #ff7f2a;
+  margin-bottom: 6px;
+}
+.pcc-logo-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #fff;
+}
+.pcc-photo {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: 5px solid #ff7f2a;
+  object-fit: cover;
+  margin: 0 auto 18px auto;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(255,127,42,0.13);
+}
+.pcc-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2px;
+  letter-spacing: 0.02em;
+}
+.pcc-role {
+  font-size: 1.05rem;
+  color: #ff7f2a;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 18px;
+  letter-spacing: 0.08em;
+}
+.pcc-contact {
+  text-align: center;
+  font-size: 1.01rem;
+  color: #e0e0e0;
+  margin-bottom: 10px;
+}
+.pcc-contact i {
+  color: #ff7f2a;
+  margin-right: 8px;
+}
+.pcc-divider {
+  width: 80%;
+  height: 2px;
+  background: #ff7f2a;
+  margin: 18px auto 10px auto;
+  border-radius: 2px;
+  opacity: 0.7;
+}
+.pcc-website {
+  text-align: center;
+  color: #fff;
+  font-size: 1.01rem;
+  margin-top: 8px;
+  letter-spacing: 0.04em;
+  background: #ff7f2a;
+  padding: 6px 0;
+  border-radius: 6px;
+  width: 100%;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(255,127,42,0.10);
+}
+@media (max-width: 400px) {
+  .portrait-classic-card {
+    width: 98vw;
+    height: auto;
+    padding: 0 8px 18px 8px;
+  }
+}
+</style>
+<div class="portrait-classic-card">
+  <div class="pcc-top-bar"></div>
+  <div class="pcc-logo">
+    <div class="pcc-logo-icon">
+      <i class="fas fa-gem"></i>
     </div>
-    <div class="dotted-line"></div>
-    <div class="right-section">
-      <h1 id="name-classic" class="name">{{ $full_name ?? 'Your Name' }}</h1>
-      <p id="role-classic" class="job-title">{{ $job_title ?? 'Job Title' }}</p>
-      <p id="company-classic" class="company">{{ $company_name ?? 'Company Name' }}</p>
-      
-      <div class="contact-info">
-        <div class="contact-item">
-          <i class="fas fa-phone"></i>
-          <span id="phone-classic">{{ $phone ?? 'Phone Number' }}</span>
-        </div>
-        <div class="contact-item">
-          <i class="fas fa-envelope"></i>
-          <span id="email-classic">{{ $email ?? 'Email Address' }}</span>
-        </div>
-        <div class="contact-item">
-          <i class="fas fa-globe"></i>
-          <span id="website-classic">{{ $website ?? 'Website' }}</span>
-        </div>
-        <div class="social-links">
-          <a href="{{ $linkedin ?? '#' }}" class="social-link">
-            <i class="fab fa-linkedin"></i>
-            <span id="linkedin-classic" style="display:none">{{ $linkedin ?? '' }}</span>
-          </a>
-          <a href="{{ $twitter ?? '#' }}" class="social-link">
-            <i class="fab fa-twitter"></i>
-            <span id="twitter-classic" style="display:none">{{ $twitter ?? '' }}</span>
-          </a>
-        </div>
-      </div>
-
-      <div class="curve"></div>
-    </div>
+    <div class="pcc-logo-text" id="company-classic">{{ $company_name ?? 'Borcelle' }}</div>
   </div>
+  <img id="photo-classic" src="{{ $logoUrl ?? asset('images/default-profile.png') }}" alt="Profile Image" class="pcc-photo">
+  <div class="pcc-name" id="name-classic">{{ $full_name ?? 'Daniel Gallego' }}</div>
+  <div class="pcc-role" id="role-classic">{{ $job_title ?? 'MANAGER' }}</div>
+  <div class="pcc-contact"><i class="fas fa-phone"></i><span id="phone-classic">{{ $phone ?? }}</span></div>
+  <div class="pcc-contact"><i class="fas fa-envelope"></i><span id="email-classic">{{ $email ??  }}</span></div>
+  <div class="pcc-contact"><i class="fas fa-id-badge"></i><span>{{ $address ??  }}</span></div>
+  <div class="pcc-divider"></div>
+  <div class="pcc-website" id="website-classic">{{ $website ?? '' }}</div>
+</div>

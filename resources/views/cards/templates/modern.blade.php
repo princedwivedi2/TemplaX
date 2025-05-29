@@ -1,4 +1,4 @@
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
 body {
@@ -8,171 +8,154 @@ body {
   font-family: 'Poppins', sans-serif;
 }
 
-.business-card {
-  width: 700px;
-  max-width: 100%;
-  height: 350px;
-  background: linear-gradient(45deg, #333, #111);
+.business-card-modern {
+  width: 400px;
+  min-height: 220px;
+  background: rgba(34, 40, 49, 0.85);
+  border-radius: 22px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18), 0 2px 8px rgba(0,0,0,0.10);
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
   display: flex;
-  border-radius: 15px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  margin: 32px auto;
   position: relative;
-  margin: 50px auto;
-  transition: transform 0.3s ease;
+  backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255,255,255,0.18);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-
-.business-card:hover {
-  transform: translateY(-5px);
+.business-card-modern:hover {
+  transform: translateY(-4px) scale(1.025);
+  box-shadow: 0 16px 40px 0 rgba(31, 38, 135, 0.22), 0 4px 16px rgba(0,0,0,0.13);
 }
-
-.left-section {
-  flex: 1;
-  background: linear-gradient(135deg, #000, #333);
-  color: white;
+.bc-modern-left {
+  background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+  color: #fff;
+  width: 120px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  padding: 20px;
+  justify-content: center;
+  padding: 28px 12px;
   position: relative;
-  overflow: hidden;
 }
-
-.left-section::before {
-  content: '';
-  position: absolute;
-  width: 150%;
-  height: 150%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 70%);
-  top: -25%;
-  left: -25%;
+.bc-modern-left img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(67,206,162,0.18);
+  background: #fff;
 }
-
-.left-section h1 {
-  font-size: 32px;
-  margin: 0;
+.bc-modern-left .bc-modern-company {
+  font-size: 13px;
   font-weight: 600;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  position: relative;
-  z-index: 2;
+  letter-spacing: 1px;
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(24,90,157,0.12);
 }
-
-.left-section p {
-  font-size: 18px;
-  margin-top: 10px;
-  color: rgba(255,255,255,0.8);
-  font-weight: 300;
-  position: relative;
-  z-index: 2;
-}
-
-.right-section {
-  flex: 2;
-  padding: 30px;
-  background: white;
-  color: #333;
-  position: relative;
+.bc-modern-right {
+  flex: 1;
+  padding: 32px 28px 24px 28px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  background: rgba(255,255,255,0.08);
+  border-left: 1.5px solid rgba(255,255,255,0.10);
 }
-
-.contact-item {
-  margin: 10px 0;
+.bc-modern-name {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(24,90,157,0.10);
+}
+.bc-modern-role {
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: #b2fefa;
+  margin-bottom: 16px;
+}
+.bc-modern-contact {
   display: flex;
-  align-items: center;
-  font-size: 16px;
-  position: relative;
-  z-index: 2;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 0.97rem;
 }
-
-.contact-item i {
-  margin-right: 15px;
-  color: #e74c3c;
-  font-size: 20px;
-  width: 25px;
+.bc-modern-contact i {
+  color: #43cea2;
+  margin-right: 10px;
+  width: 18px;
   text-align: center;
 }
-
-.curve {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 80px;
-  width: 100%;
-  background: linear-gradient(to right, #000, #e74c3c, #f5f5f5);
-  clip-path: ellipse(100% 100% at 50% 100%);
+.bc-modern-contact span {
+  color: #e0e0e0;
 }
-
-.dotted-line {
-  position: absolute;
-  left: 33%;
-  top: 20px;
-  bottom: 20px;
-  width: 1px;
-  border-left: 2px dotted rgba(0,0,0,0.1);
+.bc-modern-social {
+  margin-top: 18px;
+  display: flex;
+  gap: 14px;
 }
-
-.logo {
-  margin-top: 25px;
-  width: 100px;
-  height: 100px;
-  object-fit: contain;
+.bc-modern-social a {
+  color: #43cea2;
+  font-size: 1.15rem;
+  background: rgba(47, 160, 150, 0.63);
   border-radius: 50%;
-  padding: 5px;
-  background: rgba(255,255,255,0.1);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  position: relative;
-  z-index: 2;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+  box-shadow: 0 1px 4px rgba(24,90,157,0.10);
 }
-
-/* Responsive adjustments */
-@media (max-width: 700px) {
-  .business-card {
+.bc-modern-social a:hover {
+  background: #43cea2;
+  color: #fff;
+}
+@media (max-width: 500px) {
+  .business-card-modern {
     flex-direction: column;
-    height: auto;
+    width: 98vw;
+    min-width: 0;
   }
-
-  .left-section {
-    padding: 30px 20px;
+  .bc-modern-left {
+    width: 100%;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 16px 12px;
   }
-
-  .dotted-line {
-    display: none;
+  .bc-modern-left img {
+    margin-bottom: 0;
+    margin-right: 16px;
   }
 }
 </style>
-
-<div class="business-card">
-  <div class="left-section">
-    <h1 id="name-modern">{{ $full_name ?? 'Jane Smith' }}</h1>
-    <p id="role-modern">{{ $job_title ?? 'Graphic Designer' }}</p>
-    <img id="photo-modern" src="{{ $logoUrl ?? asset('images/default-profile.svg') }}" alt="Logo" class="logo">
+<div class="business-card-modern">
+  <div class="bc-modern-left">
+    <img id="photo-modern" src="{{ $logoUrl ?? asset('images/default-profile.svg') }}" alt="Logo">
+    <div class="bc-modern-company" id="company-modern">{{ $company_name ?? 'Company Name' }}</div>
   </div>
-
-  <div class="dotted-line"></div>
-
-  <div class="right-section">
-    <div class="contact-item">
-      <i class="fas fa-building"></i> <span id="company-modern">{{ $company_name ?? 'ABC Company' }}</span>
+  <div class="bc-modern-right">
+    <div class="bc-modern-name" id="name-modern">{{ $full_name ?? 'Jane Smith' }}</div>
+    <div class="bc-modern-role" id="role-modern">{{ $job_title ?? 'Graphic Designer' }}</div>
+    <div class="bc-modern-contact">
+      <div><i class="fas fa-envelope"></i><span id="email-modern">{{ $email ?? 'jane@example.com' }}</span></div>
+      <div><i class="fas fa-phone"></i><span id="phone-modern">{{ $phone ?? '+1 234 567 8900' }}</span></div>
+      <div><i class="fas fa-globe"></i><span id="website-modern">{{ $website ?? 'www.example.com' }}</span></div>
+      <div><i class="fas fa-map-marker-alt"></i><span id="address-modern">{{ $address ?? '123 Main St, City' }}</span></div>
     </div>
-    <div class="contact-item">
-      <i class="fas fa-envelope"></i> <span id="email-modern">{{ $email ?? 'jane@example.com' }}</span>
+    <div class="bc-modern-social">
+      @if(!empty($linkedin))
+      <a href="{{ $linkedin }}" target="_blank"><i class="fab fa-linkedin"></i></a>
+      @endif
+      @if(!empty($twitter))
+      <a href="{{ $twitter }}" target="_blank"><i class="fab fa-twitter"></i></a>
+      @endif
     </div>
-    <div class="contact-item">
-      <i class="fas fa-phone"></i> <span id="phone-modern">{{ $phone ?? '+1 234 567 8900' }}</span>
-    </div>
-    <div class="contact-item">
-      <i class="fas fa-globe"></i> <span id="website-modern">{{ $website ?? 'www.example.com' }}</span>
-    </div>
-    <div class="contact-item">
-      <i class="fas fa-map-marker-alt"></i> <span id="address-modern">{{ $address ?? '123 Main St, City' }}</span>
-    </div>
-    <div class="contact-item">
-      <i class="fab fa-twitter"></i> <span id="twitter-modern">{{ $twitter ?? '@janesmith' }}</span>
-    </div>
-
-    <div class="curve"></div>
   </div>
 </div>

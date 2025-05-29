@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Response;
+use App\Http\Controllers\PDFHelper;
 
 class BusinessCardController extends Controller
 {
@@ -286,5 +288,20 @@ class BusinessCardController extends Controller
                 unlink($file);
             }
         }
+    }
+
+    public function downloadPdf(Request $request)
+    {
+        $request->validate([
+            'html' => 'required|string',
+        ]);
+
+        $html = $request->input('html');
+        $pdfContent = PDFHelper::htmlToPdf($html, 'business-card.pdf');
+
+        return response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="business-card.pdf"',
+        ]);
     }
 }

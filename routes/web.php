@@ -69,6 +69,7 @@ Route::middleware(['auth'])->group(function () {
 
         // AJAX preview and temporary PDF download routes
         Route::post('/preview', [BusinessCardController::class, 'preview'])->name('preview');
+        Route::post('/download-pdf', [BusinessCardController::class, 'downloadPdf'])->name('download-pdf');
 
     });
 
