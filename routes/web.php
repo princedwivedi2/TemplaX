@@ -27,12 +27,15 @@ Route::middleware(['auth'])->group(function () {
 
     // Card routes
     Route::prefix('cards')->name('cards.')->group(function () {
+        Route::post('/generate-pdf', [BusinessCardController::class, 'generatePdf'])->name('generate-pdf');
+        Route::post('/preview-template', [BusinessCardController::class, 'previewTemplate'])->name('preview-template');
+        
         // List and manage routes
         Route::get('/', [BusinessCardController::class, 'index'])->name('index');
         Route::get('/create', [BusinessCardController::class, 'create_card'])->name('create');
         Route::post('/', [BusinessCardController::class, 'store'])->name('store');
-        Route::post('/preview-template', [BusinessCardController::class, 'previewTemplate'])->name('preview-template');
-     // Load individual template view dynamically (used in template dropdown)
+        
+        // Load individual template view dynamically (used in template dropdown)
         Route::get('/templates/{template}', function ($template) {
             $templateModel = \App\Models\Template::where('slug', $template)->where('is_active', true)->first();
 
@@ -61,15 +64,10 @@ Route::middleware(['auth'])->group(function () {
         })->middleware('role:admin|super-admin')->name('approval');
 
         // Resource routes with {card} parameter
-        Route::get('/download/{card}', [BusinessCardController::class, 'download'])->name('download');
         Route::get('/{card}', [BusinessCardController::class, 'show'])->name('show');
         Route::get('/{card}/edit', [BusinessCardController::class, 'edit'])->name('edit');
         Route::put('/{card}', [BusinessCardController::class, 'update'])->name('update');
         Route::delete('/{card}', [BusinessCardController::class, 'destroy'])->name('destroy');
-
-        // AJAX preview and temporary PDF download routes
-        Route::post('/preview', [BusinessCardController::class, 'preview'])->name('preview');
-        Route::post('/download-pdf', [BusinessCardController::class, 'downloadPdf'])->name('download-pdf');
 
     });
 

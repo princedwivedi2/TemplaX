@@ -5,10 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 
 class Template extends Model
 {
     use HasFactory, SoftDeletes;
+
+    protected $guarded = [];
 
     /**
      * The attributes that are mass assignable.
@@ -91,22 +94,35 @@ class Template extends Model
      */
     public static function getAvailableTemplates()
     {
-        return self::active()->ordered()->get()->pluck('name', 'slug')->toArray();
+        return Cache::remember('available_templates', 3600, function () {
+            return static::where('is_active', true)
+                ->select(['id', 'name', 'slug', 'description', 'preview_image_url'])
+                ->get();
+        });
     }
 
     /**
-     * Get template configuration for frontend.
+     * Get template with cached relations
      */
-    public function getConfigAttribute()
+    public static function getTemplateWithConfig($slug)
     {
-        return [
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'description' => $this->description,
-            'preview_image' => $this->preview_image_url,
-            'color_scheme' => $this->color_scheme,
-            'category' => $this->category
-        ];
+        return Cache::remember('template_' . $slug, 3600, function () use ($slug) {
+            return static::where('slug', $slug)
+                ->where('is_active', true)
+                ->first();
+        });
+    }
+
+    /**
+     * Clear template cache
+     */
+    public static function clearCache($slug = null)
+    {
+        if ($slug) {
+            Cache::forget('template_' . $slug);
+        } else {
+            Cache::forget('available_templates');
+        }
     }
 
     /**

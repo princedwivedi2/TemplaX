@@ -8,23 +8,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Response;
-use App\Http\Controllers\PDFHelper;
 
 class BusinessCardController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        // For methods that need verified email
         $this->middleware('verified')->only(['store', 'update', 'destroy']);
     }
 
     public function index()
     {
         $cards = Auth::user()->hasRole('super-admin')
-            ? BusinessCard::with('user')->get() // Super admin can see all cards
-            : BusinessCard::where('user_id', Auth::id())->get(); // Others see only their cards
+            ? BusinessCard::with('user')->get()
+            : BusinessCard::where('user_id', Auth::id())->get();
 
         return view('cards.index', compact('cards'));
     }
@@ -35,7 +32,7 @@ class BusinessCardController extends Controller
         return view('cards.create', compact('templates'));
     }
 
-       public function store(Request $request)
+    public function store(Request $request)
     {
         try {
             // Base validation rules with color regex validation
@@ -79,9 +76,7 @@ class BusinessCardController extends Controller
                         throw new \Exception('Failed to upload logo file');
                     }
                     $data['logo_path'] = $path;
-                }
-
-                // Save the card
+                }                // Save the card
                 $card = BusinessCard::create($data);
 
                 return response()->json([
@@ -213,63 +208,6 @@ class BusinessCardController extends Controller
         }
     }
 
-    public function download(BusinessCard $card)
-    {
-
-        // You could generate a PDF here using a library like dompdf
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Card download functionality will be implemented here',
-            'data' => $card
-        ]);
-    }
-
-  public function previewTemplate(Request $request)
-{
-    // Validate optional color formats
-    $request->validate([
-
-        'template' => 'required|exists:templates,slug'
-    ]);
-
-    $logoUrl = null;
-    if ($request->hasFile('logo')) {
-        try {
-            $file = $request->file('logo');
-            $tmpPath = $file->store('temp-logos', 'public');
-            $logoUrl = asset('storage/' . $tmpPath);
-        } catch (\Exception $e) {
-            \Log::error('Logo upload failed for preview: ' . $e->getMessage());
-            $logoUrl = null;
-        }
-    }
-
-    // Clean up old temp logos occasionally
-    try {
-        $this->cleanupTempLogos();
-    } catch (\Exception $e) {
-        \Log::error('Failed to cleanup temp logos: ' . $e->getMessage());
-    }
-
-    // Extract template name (modern, classic, minimal)
-    $template = $request->input('template', 'modern');
-
-    // Dynamically load Blade template from resources/views/cards/templates/{template}.blade.php
-    return view('cards.templates.' . $template, [
-        'full_name'      => $request->input('full_name'),
-        'job_title'      => $request->input('job_title'),
-        'company_name'   => $request->input('company_name'),
-        'email'          => $request->input('email'),
-        'phone'          => $request->input('phone'),
-        'website'        => $request->input('website'),
-        'address'        => $request->input('address'),
-        'linkedin'       => $request->input('linkedin'),
-        'twitter'        => $request->input('twitter'),
-        'logoUrl'        => $logoUrl,
-    ]);
-}
-
     /**
      * Clean up temporary logo files older than 1 hour
      */
@@ -288,20 +226,5 @@ class BusinessCardController extends Controller
                 unlink($file);
             }
         }
-    }
-
-    public function downloadPdf(Request $request)
-    {
-        $request->validate([
-            'html' => 'required|string',
-        ]);
-
-        $html = $request->input('html');
-        $pdfContent = PDFHelper::htmlToPdf($html, 'business-card.pdf');
-
-        return response($pdfContent, 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="business-card.pdf"',
-        ]);
     }
 }

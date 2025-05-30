@@ -35,6 +35,7 @@
                 <div class="card-body">
                     <h5 class="card-title mb-4">Business Card Information</h5>
                     <form id="card-form" class="row g-3">
+                        @csrf
                         <div class="col-12">
                             <label for="full_name" class="form-label">Full Name</label>
                             <input type="text" id="full_name" name="full_name" placeholder="Enter your full name" class="form-control">
@@ -73,13 +74,7 @@
                         </div>
                         <div class="col-12">
                             <label for="logo" class="form-label">Logo/Photo</label>
-                            <input type="file" id="logo" name="logo" class="form-control" accept="image/*">
-                        </div>
-                        <div class="col-12 mt-4">
-                            <button type="button" id="download" class="btn btn-primary w-100">
-                                <i class="bi bi-eye me-2"></i>Preview Card
-                            </button>
-                        </div>
+                            <input type="file" id="logo" name="logo" class="form-control" accept="image/*">                        </div>
                     </form>
                 </div>
             </div>
@@ -89,220 +84,166 @@
 
 {{-- Scripts --}}
 <script>
-const templateSwitch = document.getElementById('template-switch');
-const container = document.getElementById('template-preview-container');
+document.addEventListener('DOMContentLoaded', function() {
+    // Form submission and validation logic
+    const form = document.getElementById('card-form');
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating PDF...';
 
-// Helper to keep track of current template
-let currentTemplate = templateSwitch.value;
-
-function applyLiveBindings(template) {
-    currentTemplate = template;
-
-    // Get form inputs
-    const fullNameInput = document.getElementById('full_name');
-    const jobTitleInput = document.getElementById('job_title');
-    const companyNameInput = document.getElementById('company_name');
-    const emailInput = document.getElementById('email');
-    const phoneInput = document.getElementById('phone');
-    const websiteInput = document.getElementById('website');
-    const addressInput = document.getElementById('address');
-    const linkedinInput = document.getElementById('linkedin');
-    const twitterInput = document.getElementById('twitter');
-    const logoInput = document.getElementById('logo');
-
-    // Template element mapping - handle different ID patterns
-    const getTemplateElement = (field) => {
-        // Try different ID patterns for each template
-        const patterns = [
-            `${field}-${template}`,
-            `${field}-modern`, // fallback for minimal template
-            field
-        ];
-
-        for (const pattern of patterns) {
-            const element = document.getElementById(pattern);
-            if (element) return element;
-        }
-        return null;
-    };
-
-    // Set initial values and bind events
-    const bindField = (input, fieldName) => {
-        if (!input) return;
-
-        const templateElement = getTemplateElement(fieldName);
-        if (templateElement) {
-            // Set initial value
-            templateElement.textContent = input.value || '';
-
-            // Bind input event
-            input.oninput = () => {
-                templateElement.textContent = input.value || '';
+            const form = document.getElementById('card-form');
+            const formData = new FormData(form);
+            const template = document.getElementById('template-switch')?.value || 'modern';
+            
+            const data = {
+                template,
+                full_name: formData.get('full_name'),
+                job_title: formData.get('job_title'),
+                company_name: formData.get('company_name'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                website: formData.get('website'),
+                address: formData.get('address'),
+                linkedin: formData.get('linkedin'),
+                twitter: formData.get('twitter'),
             };
-        }
-    };
 
-    // Bind all fields
-    bindField(fullNameInput, 'name');
-    bindField(jobTitleInput, 'role');
-    bindField(companyNameInput, 'company');
-    bindField(emailInput, 'email');
-    bindField(phoneInput, 'phone');
-    bindField(websiteInput, 'website');
-    bindField(addressInput, 'address');
-    bindField(linkedinInput, 'linkedin');
-    bindField(twitterInput, 'twitter');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            const response = await fetch('{{ route('cards.generate-pdf') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/pdf, application/json'
+                },
+                body: JSON.stringify(data)
+            });
 
-    // Handle logo/photo upload
-    if (logoInput) {
-        logoInput.onchange = (e) => {
-            if (e.target.files[0]) {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    // Try different photo element patterns
-                    const photoElement = getTemplateElement('photo') || getTemplateElement('logo');
-                    if (photoElement && photoElement.tagName === 'IMG') {
-                        photoElement.src = reader.result;
-                    }
-                };
-                reader.readAsDataURL(e.target.files[0]);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to generate PDF');
             }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `business_card_${template}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+
+            btn.innerHTML = '<i class="bi bi-download me-2"></i>Download PDF';
+        } catch (error) {
+            console.error('PDF generation failed:', error);
+            alert('Failed to generate PDF: ' + error.message);
+        } finally {
+            btn.disabled = false;
+        }
+    });
+    
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        const getTemplateElement = (field) => {
+            const patterns = [
+                `${field}-${template}`,
+                `${field}-modern`,
+                field
+            ];
+            for (const pattern of patterns) {
+                const element = document.getElementById(pattern);
+                if (element) return element;
+            }
+            return null;
         };
-    }
-}
 
-templateSwitch.addEventListener('change', async function () {
-    const template = this.value;
-    try {
-        const res = await fetch(`/cards/templates/${template}`);
-        if (!res.ok) throw new Error('Failed to load template');
-        const html = await res.text();
-        container.innerHTML = html;
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
 
-        // Apply bindings after template is loaded
-        setTimeout(() => {
-            applyLiveBindings(template);
-        }, 100);
-    } catch (error) {
-        console.error('Template loading error:', error);
-        alert('Failed to load template. Please try again.');
-    }
-});
-
-// Preview functionality (temporary - will be replaced with PDF generation later)
-document.getElementById('download').addEventListener('click', async function() {
-    const formData = new FormData(document.getElementById('card-form'));
-    formData.append('template', currentTemplate);
-
-    try {
-        const response = await fetch('/cards/preview-template', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, previewField]) => {
+            const value = formData.get(inputName) || '';
+            const templateElement = getTemplateElement(previewField);
+            if (templateElement) {
+                templateElement.textContent = value;
             }
         });
 
-        if (response.ok) {
-            // Open preview in new window
-            const html = await response.text();
-            const newWindow = window.open('', '_blank', 'width=800,height=600');
-            newWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Business Card Preview</title>
-                    <link href='https://fonts.googleapis.com/css2?family=Montserrat:wght@700;400&display=swap' rel='stylesheet'>
-                    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css'>
-                    <style>
-                        body { margin: 0; padding: 20px; background: #f0f0f0; }
-                        .preview-container {
-                            background: white;
-                            padding: 20px;
-                            border-radius: 8px;
-                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                            max-width: 800px;
-                            margin: 0 auto;
-                        }
-                        .actions {
-                            text-align: center;
-                            margin-bottom: 20px;
-                        }
-                        .btn {
-                            background: #007bff;
-                            color: white;
-                            border: none;
-                            padding: 10px 20px;
-                            border-radius: 4px;
-                            cursor: pointer;
-                            margin: 0 5px;
-                        }
-                        .btn:hover { background: #0056b3; }
-                    </style>
-                </head>
-                <body>
-                    <div class="preview-container">
-                        <div class="actions">
-                            <button class="btn" id="download-pdf-btn">Download PDF</button>
-                            <button class="btn" onclick="window.close()">Close</button>
-                        </div>
-                        ${html}
-                    </div>
-                </body>
-                </html>
-            `);
-            newWindow.document.close();
-            // Attach event after DOM is ready
-            newWindow.onload = function() {
-                // Wait for DOM to be ready
-                setTimeout(function() {
-                    const downloadBtn = newWindow.document.getElementById('download-pdf-btn');
-                    if (downloadBtn) {
-                        downloadBtn.addEventListener('click', function() {
-                            // Send the full HTML document for PDF generation
-                            const docHtml = newWindow.document.documentElement.outerHTML;
-                            fetch('/cards/download-pdf', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': window.opener.document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                                },
-                                body: JSON.stringify({ html: docHtml })
-                            })
-                            .then(response => {
-                                if (response.headers.get('content-type') && response.headers.get('content-type').includes('application/pdf')) {
-                                    return response.blob();
-                                } else {
-                                    return response.text().then(text => { throw new Error(text); });
-                                }
-                            })
-                            .then(blob => {
-                                const url = newWindow.URL.createObjectURL(blob);
-                                const a = newWindow.document.createElement('a');
-                                a.href = url;
-                                a.download = 'business-card.pdf';
-                                newWindow.document.body.appendChild(a);
-                                a.click();
-                                a.remove();
-                                newWindow.URL.revokeObjectURL(url);
-                            })
-                            .catch(err => {
-                                alert('PDF generation failed: ' + err.message);
-                            });
-                        });
-                    }
-                }, 300); // Wait 300ms for DOM
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = getTemplateElement('photo') || getTemplateElement('logo');
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
             };
-        } else {
-            throw new Error('Failed to generate preview');
+            reader.readAsDataURL(logoInput.files[0]);
         }
-    } catch (error) {
-        console.error('Preview error:', error);
-        alert('Failed to generate preview. Please try again.');
     }
-});
 
-// Initial binding
-applyLiveBindings(currentTemplate);
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to form inputs using event delegation
+        form.addEventListener('input', (event) => {
+            if (event.target.matches('input, textarea')) {
+                updatePreviewFields(currentTemplate);
+            }
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        }
+    }
+
+    // Initial setup
+    bindFormInputs();
+    updatePreviewFields(currentTemplate);
+
+    // Template switching
+    templateSwitch.addEventListener('change', async function() {
+        const template = this.value;
+        currentTemplate = template;
+        try {
+            const response = await fetch(`/cards/templates/${template}`);
+            if (!response.ok) throw new Error('Failed to load template');
+            const html = await response.text();
+            
+            // Update the preview container
+            container.innerHTML = html;
+            
+            // Update preview with current form data
+            requestAnimationFrame(() => {
+                updatePreviewFields(template);
+            });
+        } catch (error) {
+            console.error('Template loading error:', error);
+            alert('Failed to load template. Please try again.');
+        }
+    });
+});
 </script>
 @endsection
