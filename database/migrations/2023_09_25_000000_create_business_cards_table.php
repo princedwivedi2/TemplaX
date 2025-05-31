@@ -25,8 +25,7 @@ return new class extends Migration
             $table->string('linkedin')->nullable();
             $table->string('twitter')->nullable();
             $table->string('template');
-            $table->string('primary_color');
-            $table->string('accent_color');
+           
             $table->string('logo_path')->nullable();
             $table->enum('status', ['draft', 'active', 'archived'])->default('active');
             $table->timestamps();

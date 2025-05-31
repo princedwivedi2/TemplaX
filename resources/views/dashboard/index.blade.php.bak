@@ -375,7 +375,7 @@
                                     <td>
                                         <a href="{{ route('dashboard') }}" class="btn btn-sm btn-primary">Edit</a>
                                         @if($card->status == 'approved')
-                                            <a href="{{ route('card.download', ['id' => $card->id]) }}" class="btn btn-sm btn-success">
+                                            <a href="{{ route('card.download', ['card' => $card->card_id]) }}" class="btn btn-sm btn-success">
                                                 <i class="bi bi-download"></i> PDF
                                             </a>
                                         @endif

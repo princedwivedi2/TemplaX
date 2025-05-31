@@ -1,123 +1,23 @@
-<style>
-body {
-  margin: 0;
-  padding: 0;
-  background: #f4f4f4;
-  font-family: 'Segoe UI', sans-serif;
-}
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-.business-card {
-  width: 700px;
-  height: 350px;
-  background: white;
-  display: flex;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-  position: relative;
-  margin: 50px auto;
-}
-
-.left-section {
-  flex: 1;
-  background: black;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
-
-.left-section h1 {
-  font-size: 32px;
-  margin: 0;
-}
-
-.left-section p {
-  font-size: 18px;
-  margin-top: 10px;
-}
-
-.right-section {
-  flex: 2;
-  padding: 30px;
-  background: white;
-  color: #5a4e4e;
-  position: relative;
-}
-
-.contact-item {
-  margin: 10px 0;
-  display: flex;
-  align-items: center;
-  font-size: 16px;
-}
-
-.contact-item i {
-  margin-right: 15px;
-  color: #c0392b;
-  font-size: 20px;
-  width: 25px;
-}
-
-.curve {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 80px;
-  width: 100%;
-  background: linear-gradient(to right, black, red, #d3b9b9);
-  clip-path: ellipse(100% 100% at 50% 100%);
-}
-
-.dotted-line {
-  position: absolute;
-  left: 33%;
-  top: 20px;
-  bottom: 20px;
-  width: 1px;
-  border-left: 2px dotted #a44;
-}
-
-.logo {
-  margin-top: 20px;
-  max-width: 80px;
-  max-height: 80px;
-  object-fit: contain;
-}
-    /* Paste same CSS from previous answer here */
-  </style>
-
-  <div class="business-card">
-    <div class="left-section">
-      <h1 id="name-modern">Jane Smith</h1>
-      <p id="role-modern">Graphic Designer</p>
-      <img id="photo-modern" src="https://via.placeholder.com/80" alt="Logo" class="logo">
+<div id="business-card" style="width: 350px; height: 200px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.3); padding: 20px; box-sizing: border-box; display: flex; flex-direction: row; align-items: center;">
+    <div style="flex: 0 0 100px; display: flex; justify-content: center; align-items: center;">
+        <img id="photo-modern" src="{{ $logoUrl ?? asset('images/default-profile.svg') }}" alt="Logo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid white; background: white;">
     </div>
-
-    <div class="dotted-line"></div>
-
-    <div class="right-section">
-      <div class="contact-item">
-        <i class="fas fa-building"></i> <span id="company-modern"></span>
-      </div>
-      <div class="contact-item">
-        <i class="fas fa-envelope"></i> <span id="email-modern"></span>
-      </div>
-      <div class="contact-item">
-        <i class="fas fa-phone"></i> <span id="phone-modern"></span>
-      </div>
-      <div class="contact-item">
-        <i class="fas fa-globe"></i> <span id="website-modern"></span>
-      </div>
-      <div class="contact-item">
-        <i class="fas fa-map-marker-alt"></i> <span id="address-modern"></span>
-      </div>
-      <div class="contact-item">
-        <i class="fab fa-twitter"></i> <span id="twitter-modern"></span>
-      </div>
-
-      <div class="curve"></div>
+    <div style="flex: 1; margin-left: 20px;">
+        <h2 id="name-modern" style="margin: 0 0 5px 0; font-size: 1.5rem; font-weight: 700;">{{ $full_name ?? 'Your Name' }}</h2>
+        <p id="role-modern" style="margin: 0 0 10px 0; font-size: 1.1rem; font-weight: 500; opacity: 0.85;">{{ $job_title ?? 'Job Title' }}</p>
+        <p id="company-modern" style="margin: 0 0 10px 0; font-size: 1rem; font-weight: 600;">{{ $company_name ?? 'Company Name' }}</p>
+        <div style="font-size: 0.9rem; line-height: 1.3;">
+            <p id="email-modern" style="margin: 2px 0;">Email: <a href="mailto:{{ $email ?? 'email@example.com' }}" style="color: #cbd5e0; text-decoration: none;">{{ $email ?? 'email@example.com' }}</a></p>
+            <p id="phone-modern" style="margin: 2px 0;">Phone: <span>{{ $phone ?? '+1 234 567 890' }}</span></p>
+            <p id="website-modern" style="margin: 2px 0;">Website: <a href="{{ $website ?? '#' }}" style="color: #cbd5e0; text-decoration: none;">{{ $website ?? 'www.example.com' }}</a></p>
+            <p id="address-modern" style="margin: 2px 0;">Address: <span>{{ $address ?? 'Your Address' }}</span></p>
+            <div style="margin-top: 10px;">
+                <a id="linkedin-modern" href="{{ $linkedin ?? '#' }}" style="color: #cbd5e0; text-decoration: none; margin-right: 10px;"><i class="fab fa-linkedin"></i> {{ $linkedin ?? 'LinkedIn' }}</a>
+                <a id="twitter-modern" href="{{ $twitter ?? '#' }}" style="color: #cbd5e0; text-decoration: none;"><i class="fab fa-twitter"></i> {{ $twitter ?? 'Twitter' }}</a>
+            </div>
+        </div>
     </div>
-  </div>
+</div>

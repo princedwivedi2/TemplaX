@@ -1,121 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Business Card Template</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f4f4;
-    }
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-    .business-card {
-      width: 700px;
-      height: 350px;
-      background: white;
-      display: flex;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.2);
-      overflow: hidden;
-      position: relative;
-      margin: 50px auto;
-    }
-
-    .left-section {
-      flex: 1;
-      background: black;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .left-section h1 {
-      font-size: 38px;
-      margin: 0;
-    }
-
-    .left-section p {
-      font-size: 18px;
-      margin-top: 10px;
-    }
-
-    .right-section {
-      flex: 2;
-      padding: 30px;
-      background: white;
-      color: #5a4e4e;
-      position: relative;
-    }
-
-    .contact-item {
-      margin: 10px 0;
-      display: flex;
-      align-items: center;
-      font-size: 18px;
-    }
-
-    .contact-item i {
-      margin-right: 15px;
-      color: #c0392b;
-      font-size: 20px;
-      width: 25px;
-    }
-
-    .curve {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 80px;
-      width: 100%;
-      background: linear-gradient(to right, black, red, #d3b9b9);
-      clip-path: ellipse(100% 100% at 50% 100%);
-    }
-
-    .dotted-line {
-      position: absolute;
-      left: 33%;
-      top: 20px;
-      bottom: 20px;
-      width: 1px;
-      border-left: 2px dotted #a44;
-    }
-  </style>
-</head>
-<body>
-
-<div class="business-card">
-  <div class="left-section">
-    <h1>{{ $name }}</h1>
-    <p>{{ $position }}</p>
-  </div>
-
-  <div class="dotted-line"></div>
-
-  <div class="right-section">
-    <div class="contact-item">
-      <i class="fas fa-map-marker-alt"></i> {{ $address }}
+<div id="business-card" style="width: 350px; height: 200px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: white; color: #333; border-radius: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); padding: 20px; box-sizing: border-box; display: flex; flex-direction: row; border: 1px solid #eee;">
+    <div style="flex: 0 0 120px; background: #f8f9fa; border-radius: 10px; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 2px dotted #ddd;">
+        <img id="photo-minimal" src="{{ $logoUrl ?? asset('images/default-profile.svg') }}" alt="Logo" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #eee;">
+        <h2 id="name-minimal" style="margin: 10px 0 0 0; font-size: 1rem; font-weight: 600; text-align: center;">{{ $full_name ?? 'Your Name' }}</h2>
+        <p id="role-minimal" style="margin: 5px 0 0 0; font-size: 0.8rem; color: #666; text-align: center;">{{ $job_title ?? 'Your Title' }}</p>
     </div>
-    <div class="contact-item">
-      <i class="fas fa-phone"></i> {{ $phone }}
+    
+    <div style="flex: 1; margin-left: 20px;">
+        <p id="company-minimal" style="margin: 0 0 15px 0; font-size: 1.1rem; font-weight: 600; color: #444;">{{ $company_name ?? 'Company Name' }}</p>
+        <div style="font-size: 0.85rem; line-height: 1.4;">
+            <p id="address-minimal" style="margin: 5px 0;"><i class="fas fa-map-marker-alt" style="width: 16px; color: #666;"></i> {{ $address ?? 'Your Address' }}</p>
+            <p id="phone-minimal" style="margin: 5px 0;"><i class="fas fa-phone" style="width: 16px; color: #666;"></i> {{ $phone ?? '+1 234 567 890' }}</p>
+            <p id="email-minimal" style="margin: 5px 0;"><i class="fas fa-envelope" style="width: 16px; color: #666;"></i> {{ $email ?? 'email@example.com' }}</p>
+            <p id="website-minimal" style="margin: 5px 0;"><i class="fas fa-globe" style="width: 16px; color: #666;"></i> {{ $website ?? 'www.example.com' }}</p>
+        </div>
+        <div style="margin-top: 10px; font-size: 0.85rem;">
+            <a id="linkedin-minimal" href="{{ $linkedin ?? '#' }}" style="color: #0077b5; text-decoration: none; margin-right: 15px;"><i class="fab fa-linkedin"></i> {{ $linkedin ?? 'LinkedIn' }}</a>
+            <a id="twitter-minimal" href="{{ $twitter ?? '#' }}" style="color: #1da1f2; text-decoration: none;"><i class="fab fa-twitter"></i> {{ $twitter ?? 'Twitter' }}</a>
+        </div>
     </div>
-    <div class="contact-item">
-      <i class="fas fa-mobile-alt"></i> {{ $mobile }}
-    </div>
-    <div class="contact-item">
-      <i class="fas fa-envelope"></i> {{ $email }}
-    </div>
-    <div class="contact-item">
-      <i class="fas fa-globe"></i> {{ $website }}
-    </div>
-
-    <div class="curve"></div>
-  </div>
 </div>
-
-</body>
-</html>

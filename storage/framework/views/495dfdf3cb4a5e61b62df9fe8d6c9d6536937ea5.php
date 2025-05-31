@@ -1,41 +1,41 @@
-@extends('layouts.app-dashboard')
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 
 <div class="container px-4 py-6">
     <div class="row">
         <div class="col-12">
-            {{-- Template Switcher --}}
+            
             <div class="mb-4">
                 <label for="template-switch" class="form-label fw-medium">Choose a Template:</label>
                 <select id="template-switch" class="form-select" style="max-width: 300px;">
-                    @foreach($templates as $slug => $name)
-                        <option value="{{ $slug }}">{{ $name }}</option>
-                    @endforeach
+                    <?php $__currentLoopData = $templates; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $slug => $name): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($slug); ?>"><?php echo e($name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
             </div>
         </div>
     </div>
 
     <div class="row">
-        {{-- Preview (Left Side) --}}
+        
         <div class="col-12 col-lg-6 mb-4 mb-lg-0">
             <div class="card h-100">
                 <div class="card-body d-flex align-items-center justify-content-center" id="template-preview-container">
-                    @if(!empty($templates))
-                        @php $firstTemplate = array_key_first($templates); @endphp
-                        @include("cards.templates.{$firstTemplate}") {{-- default view --}}
-                    @endif
+                    <?php if(!empty($templates)): ?>
+                        <?php $firstTemplate = array_key_first($templates); ?>
+                        <?php echo $__env->make("cards.templates.{$firstTemplate}", \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?> 
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
 
-        {{-- Form (Right Side) --}}
+        
         <div class="col-12 col-lg-6">
             <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title mb-4">Business Card Information</h5>
-                    <form id="card-form" class="row g-3" method="POST" action="{{ route('cards.store') }}" enctype="multipart/form-data" onsubmit="return handleCardFormSubmit(event)">
-                        @csrf
+                    <form id="card-form" class="row g-3" method="POST" action="<?php echo e(route('cards.store')); ?>" enctype="multipart/form-data" onsubmit="return handleCardFormSubmit(event)">
+                        <?php echo csrf_field(); ?>
                         <div class="col-12">
                             <label for="full_name" class="form-label">Full Name</label>
                             <input type="text" id="full_name" name="full_name" placeholder="Enter your full name" class="form-control">
@@ -77,7 +77,7 @@
                             <input type="file" id="logo" name="logo" class="form-control" accept="image/*">
                         </div>
                         <div class="col-12">
-                            <input type="hidden" name="template" id="template-hidden" value="{{ array_key_first($templates) }}">
+                            <input type="hidden" name="template" id="template-hidden" value="<?php echo e(array_key_first($templates)); ?>">
                             <button type="submit" class="btn btn-primary w-100">Submit</button>
                         </div>
                     </form>
@@ -87,7 +87,7 @@
     </div>
 </div>
 
-{{-- Scripts --}}
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const templateSwitch = document.getElementById('template-switch');
@@ -229,4 +229,6 @@ function handleCardFormSubmit(event) {
     return false;
 }
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app-dashboard', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\wamp64\www\TemplaX\resources\views/cards/create.blade.php ENDPATH**/ ?>

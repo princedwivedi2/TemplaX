@@ -28,8 +28,6 @@ class BusinessCard extends Model
         'linkedin',
         'twitter',
         'template',
-        'primary_color',
-        'accent_color',
         'logo_path',
         'status'
     ];
@@ -40,14 +38,24 @@ class BusinessCard extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
-    }    /**
+    }
+
+    /**
+     * Get the template used by this business card.
+     */
+    public function templateModel()
+    {
+        return $this->belongsTo(Template::class, 'template', 'slug');
+    }
+
+    /**
      * Get the card's logo URL.
      */
     public function getLogoUrlAttribute()
     {
         return $this->logo_path ? asset('storage/' . $this->logo_path) : null;
     }
-    
+
     /**
      * Scope to get all cards for a specific user or all cards for super admin
      */
@@ -56,10 +64,10 @@ class BusinessCard extends Model
         if ($user->hasRole('super-admin')) {
             return $query->with('user');
         }
-        
+
         return $query->where('user_id', $user->id);
     }
-    
+
     /**
      * Get a human-readable created date
      */
@@ -67,7 +75,7 @@ class BusinessCard extends Model
     {
         return $this->created_at->format('M d, Y');
     }
-    
+
     /**
      * Get the status badge HTML
      */
@@ -78,7 +86,7 @@ class BusinessCard extends Model
             'active' => 'bg-success',
             'archived' => 'bg-danger'
         ];
-        
+
         return sprintf(
             '<span class="badge %s">%s</span>',
             $colors[$this->status] ?? 'bg-secondary',
@@ -87,7 +95,7 @@ class BusinessCard extends Model
     }
 
     /**
-     * Get the route key for the model.
+     * Use card_id for route model binding
      */
     public function getRouteKeyName()
     {
