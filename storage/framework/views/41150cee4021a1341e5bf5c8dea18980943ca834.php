@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
 
-    <title>{{ config('app.name', 'TemplaX') }} - @yield('title', 'Dashboard')</title>
+    <title><?php echo e(config('app.name', 'TemplaX')); ?> - <?php echo $__env->yieldContent('title', 'Dashboard'); ?></title>
 
     <!-- Styles -->
-    @section('styles')
+    <?php $__env->startSection('styles'); ?>
     <!-- Bootstrap 5 CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -17,7 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.min.css">
-    @show
+    <?php echo $__env->yieldSection(); ?>
 
     <style>
         :root {
@@ -172,23 +172,24 @@
             <button class="btn btn-sm btn-primary" id="sidebarToggle">
                 <i class="bi bi-list"></i>
             </button>
-            <h5 class="navbar-brand mb-0 ms-3">@yield('title', 'Dashboard')</h5>
+            <h5 class="navbar-brand mb-0 ms-3"><?php echo $__env->yieldContent('title', 'Dashboard'); ?></h5>
             <div class="ms-auto d-flex align-items-center">
                 <!-- User Profile Dropdown -->
                 <div class="dropdown">
                     <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
                         <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                            {{ substr(Auth::user()->name, 0, 1) }}
+                            <?php echo e(substr(Auth::user()->name, 0, 1)); ?>
+
                         </div>
-                        <span>{{ Auth::user()->name }}</span>
+                        <span><?php echo e(Auth::user()->name); ?></span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                         <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profile</a></li>
                         <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Settings</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
-                            <form method="POST" action="{{ route('logout') }}" class="dropdown-item">
-                                @csrf
+                            <form method="POST" action="<?php echo e(route('logout')); ?>" class="dropdown-item">
+                                <?php echo csrf_field(); ?>
                                 <button type="submit" class="btn btn-link text-danger p-0">
                                     <i class="bi bi-box-arrow-right me-2"></i>Logout
                                 </button>
@@ -208,7 +209,7 @@
                 <div class="flex-grow-1 p-3">
                     <ul class="nav nav-pills flex-column">
                         <li class="nav-item">
-                            <a href="{{ route('dashboard') }}" class="nav-link text-white {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('dashboard')); ?>" class="nav-link text-white <?php echo e(request()->routeIs('dashboard') ? 'active' : ''); ?>">
                                 <i class="bi bi-speedometer2 me-2"></i> Dashboard
                             </a>
                         </li>
@@ -218,46 +219,46 @@
                             <span class="nav-header text-uppercase text-white-50 small d-block py-2 px-3">Business Cards</span>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('cards.index') }}" class="nav-link text-white d-flex align-items-center {{ request()->routeIs('cards.index') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('cards.index')); ?>" class="nav-link text-white d-flex align-items-center <?php echo e(request()->routeIs('cards.index') ? 'active' : ''); ?>">
                                 <i class="bi bi-credit-card-2-front me-3" style="width: 20px; text-align: center;"></i>
-                                <span>{{ Auth::user()->hasRole('super-admin') ? 'All Cards' : 'My Cards' }}</span>
+                                <span><?php echo e(Auth::user()->hasRole('super-admin') ? 'All Cards' : 'My Cards'); ?></span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('cards.create') }}" class="nav-link text-white d-flex align-items-center {{ request()->routeIs('cards.create') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('cards.create')); ?>" class="nav-link text-white d-flex align-items-center <?php echo e(request()->routeIs('cards.create') ? 'active' : ''); ?>">
                                 <i class="bi bi-plus-circle me-3" style="width: 20px; text-align: center;"></i>
                                 <span>Create Card</span>
                             </a>
                         </li>
 
                         <!-- Templates Section -->
-                        @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('super-admin'))
+                        <?php if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('super-admin')): ?>
                         <li class="nav-item mt-3">
                             <span class="nav-header text-uppercase text-white-50 small d-block py-2 px-3">Templates</span>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('templates.index') }}" class="nav-link text-white d-flex align-items-center {{ request()->routeIs('templates.*') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('templates.index')); ?>" class="nav-link text-white d-flex align-items-center <?php echo e(request()->routeIs('templates.*') ? 'active' : ''); ?>">
                                 <i class="bi bi-grid-3x3-gap me-3" style="width: 20px; text-align: center;"></i>
                                 <span>Manage Templates</span>
                             </a>
                         </li>
-                        @endif
+                        <?php endif; ?>
 
                         <!-- Admin Section -->
-                        @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('super-admin'))
+                        <?php if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('super-admin')): ?>
                         <li class="nav-item mt-3">
                             <span class="nav-header text-uppercase text-white-50 small d-block py-2 px-3">Administration</span>
                         </li>
-                        @if(Auth::user()->hasRole('super-admin'))
+                        <?php if(Auth::user()->hasRole('super-admin')): ?>
                         <li class="nav-item">
-                            <a href="{{ route('admin.users.index') }}" class="nav-link text-white d-flex align-items-center {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('admin.users.index')); ?>" class="nav-link text-white d-flex align-items-center <?php echo e(request()->routeIs('admin.users.*') ? 'active' : ''); ?>">
                                 <i class="bi bi-people me-3" style="width: 20px; text-align: center;"></i>
                                 <span>Manage Users</span>
                             </a>
                         </li>
-                        @endif
+                        <?php endif; ?>
                     
-                        @endif
+                        <?php endif; ?>
                     </ul>
                 </div>
 
@@ -265,18 +266,19 @@
                 <div class="p-3 border-top border-secondary mt-auto">
                     <div class="d-flex align-items-center mb-3">
                         <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
-                            {{ substr(Auth::user()->name, 0, 1) }}
+                            <?php echo e(substr(Auth::user()->name, 0, 1)); ?>
+
                         </div>
                         <div>
-                            <div class="text-white fw-bold">{{ Auth::user()->name }}</div>
+                            <div class="text-white fw-bold"><?php echo e(Auth::user()->name); ?></div>
                             <small class="text-white-50">
-                                @if(Auth::user()->hasRole('super-admin'))
+                                <?php if(Auth::user()->hasRole('super-admin')): ?>
                                     Super Admin
-                                @elseif(Auth::user()->hasRole('admin'))
+                                <?php elseif(Auth::user()->hasRole('admin')): ?>
                                     Admin
-                                @else
+                                <?php else: ?>
                                     User
-                                @endif
+                                <?php endif; ?>
                             </small>
                         </div>
                     </div>
@@ -290,42 +292,46 @@
         <!-- Main Content -->
         <main class="main-content">
             <!-- Flash Messages -->
-            @if(session('success') || session('error') || session('warning') || session('info'))
+            <?php if(session('success') || session('error') || session('warning') || session('info')): ?>
                 <div class="alert-container mb-4">
-                    @if(session('success'))
+                    <?php if(session('success')): ?>
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            {{ session('success') }}
+                            <?php echo e(session('success')); ?>
+
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                    @endif
-                    @if(session('error'))
+                    <?php endif; ?>
+                    <?php if(session('error')): ?>
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            {{ session('error') }}
+                            <?php echo e(session('error')); ?>
+
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                    @endif
-                    @if(session('warning'))
+                    <?php endif; ?>
+                    <?php if(session('warning')): ?>
                         <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                            {{ session('warning') }}
+                            <?php echo e(session('warning')); ?>
+
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                    @endif
-                    @if(session('info'))
+                    <?php endif; ?>
+                    <?php if(session('info')): ?>
                         <div class="alert alert-info alert-dismissible fade show" role="alert">
-                            {{ session('info') }}
+                            <?php echo e(session('info')); ?>
+
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                    @endif
+                    <?php endif; ?>
                 </div>
-            @endif
+            <?php endif; ?>
 
             <!-- Content -->
-            @yield('content')
+            <?php echo $__env->yieldContent('content'); ?>
         </main>
     </div>
 
     <!-- Scripts -->
-    @section('scripts')
+    <?php $__env->startSection('scripts'); ?>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
@@ -469,6 +475,7 @@
             });
         });
     </script>
-    @show
+    <?php echo $__env->yieldSection(); ?>
 </body>
 </html>
+<?php /**PATH C:\wamp64\www\TemplaX\resources\views/layouts/app-dashboard.blade.php ENDPATH**/ ?>

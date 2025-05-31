@@ -6,30 +6,33 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BusinessCardController;
 use App\Http\Controllers\TemplateController;
 
-// Guest/Public routes
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Authentication routes
-require __DIR__.'/auth.php';
+// Guest routes go here
+Route::middleware(['web'])->group(function () {
+    require __DIR__.'/auth.php';
+});
 
-// Protected routes
+// Dashboard routes
 Route::middleware(['auth'])->group(function () {
-    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Business Cards Management
+    // Business Card routes grouped with prefix
     Route::prefix('cards')->name('cards.')->group(function () {
+        // List and manage routes
         Route::get('/', [BusinessCardController::class, 'index'])->name('index');
         Route::get('/create', [BusinessCardController::class, 'create_card'])->name('create');
         Route::post('/', [BusinessCardController::class, 'store'])->name('store');
         
-        // Dynamic template preview
+        // Load individual template view dynamically (used in template dropdown)
         Route::get('/templates/{template}', function ($template) {
-            $templateModel = \App\Models\Template::where('slug', $template)
-                ->where('is_active', true)
-                ->firstOrFail();
+            $templateModel = \App\Models\Template::where('slug', $template)->where('is_active', true)->first();
+
+            if (!$templateModel) {
+                abort(404);
+            }
 
             return view($templateModel->view_path, [
                 'full_name' => '',
@@ -45,23 +48,22 @@ Route::middleware(['auth'])->group(function () {
             ]);
         })->name('template.view');
 
-        // Card resource routes
+
+        // Admin routes
+        Route::get('/approval', function () {
+            return view('dashboard.index', ['activeTab' => 'approvals']);
+        })->middleware('role:admin|super-admin')->name('approval');
+
+        // Resource routes with {card} parameter
         Route::get('/{card}', [BusinessCardController::class, 'show'])->name('show');
         Route::get('/{card}/edit', [BusinessCardController::class, 'edit'])->name('edit');
         Route::put('/{card}', [BusinessCardController::class, 'update'])->name('update');
         Route::delete('/{card}', [BusinessCardController::class, 'destroy'])->name('destroy');
-        // A4 preview
-        Route::get('/{card}/a4-preview', [BusinessCardController::class, 'a4Preview'])->name('a4-preview');
+
     });
 
-    // Admin and Super Admin routes
-    Route::middleware(['role:admin|super-admin'])->group(function () {
-        // Cards approval route
-        Route::get('/cards/approval', function () {
-            return view('dashboard.index', ['activeTab' => 'approvals']);
-        })->name('cards.approval');
-
-        // Template Management
+    // Template Management Routes
+    Route::middleware(['auth', 'role:admin|super-admin'])->group(function () {
         Route::prefix('templates')->name('templates.')->group(function () {
             Route::get('/', [TemplateController::class, 'index'])->name('index');
             Route::get('/create', [TemplateController::class, 'create'])->name('create');
@@ -74,9 +76,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{template}/preview', [TemplateController::class, 'preview'])->name('preview');
         });
 
-     
+        // API Routes for templates
+        Route::get('/api/templates/available', [TemplateController::class, 'getAvailable'])->name('api.templates.available');
+    });
 
-        // User Management (Admin view)
+    // Admin and Super Admin routes
+    Route::middleware(['auth', 'role:admin|super-admin'])->group(function () {
         Route::prefix('admin')->group(function () {
             Route::get('/users', function () {
                 return view('dashboard.index', ['activeTab' => 'users']);
@@ -84,14 +89,26 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    // Super Admin only routes
-    Route::middleware(['role:super-admin'])->group(function () {
-        Route::prefix('super-admin/users')->name('admin.users.')->group(function () {
-            Route::get('/', [UserController::class, 'index'])->name('index');
-            Route::get('/cards', [UserController::class, 'cards'])->name('cards');
-            Route::get('/data', [UserController::class, 'data'])->name('data');
-            Route::post('/', [UserController::class, 'store'])->name('store');
-            Route::get('/{id}', [UserController::class, 'show'])->name('show');
+    // Super Admin routes
+    Route::middleware(['auth', 'role:super-admin'])->group(function () {
+        Route::prefix('super-admin')->group(function () {
+            // User Management Routes
+            Route::prefix('users')->name('admin.users.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('index');
+                Route::get('/cards', [App\Http\Controllers\Admin\UserController::class, 'cards'])->name('cards');
+                Route::get('/data', [App\Http\Controllers\Admin\UserController::class, 'data'])->name('data');
+                Route::post('/', [App\Http\Controllers\Admin\UserController::class, 'store'])->name('store');
+                Route::get('/{id}', [App\Http\Controllers\Admin\UserController::class, 'show'])->name('show');
+                Route::put('/{id}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('update');
+                Route::delete('/{id}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('destroy');
+            });
+
+            // Other Super Admin Routes
+            Route::get('/settings', function () {
+                return view('dashboard.index', ['activeTab' => 'settings']);
+            })->name('settings.index');
         });
     });
-});
+
+
+require __DIR__.'/auth.php';

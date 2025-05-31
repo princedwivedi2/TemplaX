@@ -96,8 +96,10 @@ class Template extends Model
     {
         return Cache::remember('available_templates', 3600, function () {
             return static::where('is_active', true)
-                ->select(['id', 'name', 'slug', 'description', 'preview_image_url'])
-                ->get();
+                ->select(['name', 'slug'])
+                ->get()
+                ->pluck('name', 'slug')
+                ->toArray();
         });
     }
 

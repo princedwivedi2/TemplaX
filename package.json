@@ -8,9 +8,5 @@
         "alpinejs": "^3.4.2",
         "axios": "^0.21",
         "lodash": "^4.17.19"
-    },
-    "dependencies": {
-        "chrome-launcher": "^1.2.0",
-        "puppeteer": "^24.9.0"
     }
 }

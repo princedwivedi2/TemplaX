@@ -28,8 +28,6 @@ class BusinessCard extends Model
         'linkedin',
         'twitter',
         'template',
-        'primary_color',
-        'accent_color',
         'logo_path',
         'status'
     ];
@@ -97,7 +95,7 @@ class BusinessCard extends Model
     }
 
     /**
-     * Get the route key for the model.
+     * Use card_id for route model binding
      */
     public function getRouteKeyName()
     {

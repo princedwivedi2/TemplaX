@@ -35,7 +35,7 @@ class BusinessCardController extends Controller
     public function store(Request $request)
     {
         try {
-            // Base validation rules with color regex validation
+            // Base validation rules
             $rules = [
                 'full_name' => 'required|string|max:255',
                 'job_title' => 'required|string|max:255',
@@ -47,14 +47,12 @@ class BusinessCardController extends Controller
                 'linkedin' => 'nullable|url|max:255',
                 'twitter' => 'nullable|url|max:255',
                 'template' => 'required|string|exists:templates,slug',
-                'primary_color' => 'required|string|max:7',
-                'accent_color' => 'required|string|max:7',
                 'logo' => 'nullable|image|mimes:jpeg,png|max:2048'
             ];
 
             // Add user_id validation for super admin
             if (Auth::user()->hasRole('super-admin')) {
-                $rules['user_id'] = 'required|exists:users,id';
+                $rules['user_id'] = 'sometimes'; // Not required in form, will be set below
             }
 
             $validated = $request->validate($rules);
@@ -67,6 +65,8 @@ class BusinessCardController extends Controller
                 : Auth::id();
 
             $data['card_id'] = Str::uuid();
+            
+          
 
             try {
                 // Handle logo upload if present
@@ -82,7 +82,10 @@ class BusinessCardController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'Business card created successfully!',
-                    'data' => $card
+                    'data' => [
+                        'id' => $card->id,
+                        'card_id' => $card->card_id
+                    ]
                 ]);
             } catch (\Exception $e) {
                 // If logo was uploaded but card creation failed, remove the logo
@@ -144,8 +147,6 @@ class BusinessCardController extends Controller
             'linkedin' => 'nullable|url|max:255',
             'twitter' => 'nullable|url|max:255',
             'template' => 'required|string|exists:templates,slug',
-            'primary_color' => 'required|string|max:7',
-            'accent_color' => 'required|string|max:7',
             'logo' => 'nullable|image|mimes:jpeg,png|max:2048'
         ]);
 
@@ -226,5 +227,17 @@ class BusinessCardController extends Controller
                 unlink($file);
             }
         }
+    }
+
+    /**
+     * Show the A4 preview page for the card
+     */
+    public function a4Preview(BusinessCard $card)
+    {
+        // Only allow owner or super-admin
+        if (!Auth::user()->hasRole('super-admin') && $card->user_id !== Auth::id()) {
+            abort(403);
+        }
+        return view('cards.a4-preview', compact('card'));
     }
 }
