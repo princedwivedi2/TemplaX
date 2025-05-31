@@ -57,14 +57,24 @@ class BusinessCardController extends Controller
 
             $validated = $request->validate($rules);
 
-            $data = collect($validated)->except('logo')->toArray();
-
-            // Allow super admin to create cards for other users
-            $data['user_id'] = Auth::user()->hasRole('super-admin') && $request->has('user_id')
-                ? $request->user_id
-                : Auth::id();
-
-            $data['card_id'] = Str::uuid();
+            // Prepare data for saving
+            $data = [
+                'full_name' => $validated['full_name'],
+                'job_title' => $validated['job_title'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'company_name' => $validated['company_name'],
+                'website' => $validated['website'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'linkedin' => $validated['linkedin'] ?? null,
+                'twitter' => $validated['twitter'] ?? null,
+                'template' => $validated['template'],
+                'user_id' => Auth::user()->hasRole('super-admin') && $request->has('user_id')
+                    ? $request->user_id
+                    : Auth::id(),
+                'card_id' => Str::uuid(),
+                'status' => 'active'
+            ];
 
             try {
                 // Handle logo upload if present
@@ -273,13 +283,9 @@ class BusinessCardController extends Controller
             'website' => $card->website,
             'address' => $card->address,
             'linkedin' => $card->linkedin,
-            'twitter' => $card->twitter
+            'twitter' => $card->twitter,
+            'logoUrl' => $card->logo_path ? asset('storage/' . $card->logo_path) : null
         ];
-
-        // Add logo URL if exists
-        if ($card->logo_path) {
-            $data['logoUrl'] = asset('storage/' . $card->logo_path);
-        }
 
         return view('cards.preview', [
             'card' => $card,
