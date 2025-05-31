@@ -1,24 +1,55 @@
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-<div id="business-card" style="width: 350px; height: 200px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: white; color: #333; border-radius: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); padding: 20px; box-sizing: border-box; display: flex; flex-direction: row; border: 1px solid #eee;">
-    <div style="flex: 0 0 120px; background: #f8f9fa; border-radius: 10px; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 2px dotted #ddd;">
-        <img id="photo-minimal" src="{{ $logoUrl ?? asset('images/default-profile.svg') }}" alt="Logo" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #eee;">
-        <h2 id="name-minimal" style="margin: 10px 0 0 0; font-size: 1rem; font-weight: 600; text-align: center;">{{ $full_name ?? 'Your Name' }}</h2>
-        <p id="role-minimal" style="margin: 5px 0 0 0; font-size: 0.8rem; color: #666; text-align: center;">{{ $job_title ?? 'Your Title' }}</p>
-    </div>
-    
-    <div style="flex: 1; margin-left: 20px;">
-        <p id="company-minimal" style="margin: 0 0 15px 0; font-size: 1.1rem; font-weight: 600; color: #444;">{{ $company_name ?? 'Company Name' }}</p>
-        <div style="font-size: 0.85rem; line-height: 1.4;">
-            <p id="address-minimal" style="margin: 5px 0;"><i class="fas fa-map-marker-alt" style="width: 16px; color: #666;"></i> {{ $address ?? 'Your Address' }}</p>
-            <p id="phone-minimal" style="margin: 5px 0;"><i class="fas fa-phone" style="width: 16px; color: #666;"></i> {{ $phone ?? '+1 234 567 890' }}</p>
-            <p id="email-minimal" style="margin: 5px 0;"><i class="fas fa-envelope" style="width: 16px; color: #666;"></i> {{ $email ?? 'email@example.com' }}</p>
-            <p id="website-minimal" style="margin: 5px 0;"><i class="fas fa-globe" style="width: 16px; color: #666;"></i> {{ $website ?? 'www.example.com' }}</p>
+<div id="business-card" style="width: 350px; height: 200px; font-family: 'Inter', 'Segoe UI', sans-serif; background: linear-gradient(to right, #1e3a8a 30%, #ffffff 30%); color: #1e3a8a; border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.2); padding: 0; box-sizing: border-box; position: relative; overflow: hidden;">
+    <!-- Left Side (Dark Blue) -->
+    <div style="position: absolute; left: 0; top: 0; width: 30%; height: 100%; padding: 25px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <div style="width: 70px; height: 70px; border-radius: 35px; overflow: hidden; background: white; padding: 3px;">
+            <img id="photo-corporate" src="{{ $logoUrl ?? asset('images/default-profile.svg') }}" alt="Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 35px;">
         </div>
-        <div style="margin-top: 10px; font-size: 0.85rem;">
-            <a id="linkedin-minimal" href="{{ $linkedin ?? '#' }}" style="color: #0077b5; text-decoration: none; margin-right: 15px;"><i class="fab fa-linkedin"></i> {{ $linkedin ?? 'LinkedIn' }}</a>
-            <a id="twitter-minimal" href="{{ $twitter ?? '#' }}" style="color: #1da1f2; text-decoration: none;"><i class="fab fa-twitter"></i> {{ $twitter ?? 'Twitter' }}</a>
+        <!-- Social Links -->
+        <div style="display: flex; gap: 12px; margin-top: 15px;">
+            @if(isset($linkedin) && $linkedin)
+            <a href="{{ $linkedin }}" id="linkedin-corporate" style="color: white; text-decoration: none;">
+                <i class="bi bi-linkedin"></i>
+            </a>
+            @endif
+            @if(isset($twitter) && $twitter)
+            <a href="{{ $twitter }}" id="twitter-corporate" style="color: white; text-decoration: none;">
+                <i class="bi bi-twitter"></i>
+            </a>
+            @endif
         </div>
     </div>
+
+    <!-- Right Side (White) -->
+    <div style="margin-left: 30%; height: 100%; padding: 25px; box-sizing: border-box;">
+        <!-- Header -->
+        <div style="margin-bottom: 15px;">
+            <h2 id="name-corporate" style="margin: 0; font-size: 20px; font-weight: 600; color: #1e3a8a;">{{ $full_name ?? 'Your Name' }}</h2>
+            <p id="role-corporate" style="margin: 4px 0 0 0; font-size: 14px; color: #64748b;">{{ $job_title ?? 'Job Title' }}</p>
+            <p id="company-corporate" style="margin: 2px 0 0 0; font-size: 14px; color: #1e3a8a; font-weight: 500;">{{ $company_name ?? 'Company Name' }}</p>
+        </div>
+
+        <!-- Contact Information -->
+        <div style="font-size: 12px; color: #64748b;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <i class="bi bi-envelope" style="color: #1e3a8a;"></i>
+                <span id="email-corporate">{{ $email ?? 'email@example.com' }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <i class="bi bi-telephone" style="color: #1e3a8a;"></i>
+                <span id="phone-corporate">{{ $phone ?? '+1 234 567 890' }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <i class="bi bi-globe" style="color: #1e3a8a;"></i>
+                <span id="website-corporate">{{ $website ?? 'www.example.com' }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i class="bi bi-geo-alt" style="color:rgba(72, 95, 158, 0.56);"></i>
+                <span id="address-corporate">{{ $address ?? 'Your Address' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Accent -->
+    <div style="position: absolute; bottom: 0; left: 30%; right: 0; height: 4px; background: linear-gradient(to right, #3b82f6, #1e3a8a);"></div>
 </div>

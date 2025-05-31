@@ -52,7 +52,7 @@ class BusinessCardController extends Controller
 
             // Add user_id validation for super admin
             if (Auth::user()->hasRole('super-admin')) {
-                $rules['user_id'] = 'sometimes'; // Not required in form, will be set below
+                $rules['user_id'] = 'sometimes';
             }
 
             $validated = $request->validate($rules);
@@ -65,8 +65,6 @@ class BusinessCardController extends Controller
                 : Auth::id();
 
             $data['card_id'] = Str::uuid();
-            
-          
 
             try {
                 // Handle logo upload if present
@@ -76,17 +74,26 @@ class BusinessCardController extends Controller
                         throw new \Exception('Failed to upload logo file');
                     }
                     $data['logo_path'] = $path;
-                }                // Save the card
+                }
+
+                // Save the card
                 $card = BusinessCard::create($data);
 
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Business card created successfully!',
-                    'data' => [
-                        'id' => $card->id,
-                        'card_id' => $card->card_id
-                    ]
-                ]);
+                // Always return JSON for AJAX requests
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Business card created successfully!',
+                        'data' => [
+                            'id' => $card->id,
+                            'card_id' => $card->card_id
+                        ]
+                    ]);
+                }
+
+                return redirect()->route('cards.preview', ['id' => $card->id])
+                    ->with('success', 'Business card created successfully!');
+
             } catch (\Exception $e) {
                 // If logo was uploaded but card creation failed, remove the logo
                 if (isset($path)) {
@@ -95,17 +102,23 @@ class BusinessCardController extends Controller
                 throw $e;
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create business card',
-                'error' => $e->getMessage()
-            ], 500);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to create business card',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+            return back()->with('error', 'Failed to create business card: ' . $e->getMessage())->withInput();
         }
     }
 
@@ -239,5 +252,38 @@ class BusinessCardController extends Controller
             abort(403);
         }
         return view('cards.a4-preview', compact('card'));
+    }
+
+    public function preview($id)
+    {
+        $card = BusinessCard::findOrFail($id);
+        
+        // Ensure user owns this card
+        if (!Auth::user()->hasRole('super-admin') && $card->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        // Prepare data for the template
+        $data = [
+            'full_name' => $card->full_name,
+            'job_title' => $card->job_title,
+            'company_name' => $card->company_name,
+            'email' => $card->email,
+            'phone' => $card->phone,
+            'website' => $card->website,
+            'address' => $card->address,
+            'linkedin' => $card->linkedin,
+            'twitter' => $card->twitter
+        ];
+
+        // Add logo URL if exists
+        if ($card->logo_path) {
+            $data['logoUrl'] = asset('storage/' . $card->logo_path);
+        }
+
+        return view('cards.preview', [
+            'card' => $card,
+            'data' => $data
+        ]);
     }
 }

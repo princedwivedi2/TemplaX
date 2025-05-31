@@ -97,18 +97,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Helper: Update preview fields with current form data ---
     function updatePreviewFields(template) {
-        const getTemplateElement = (field) => {
-            const patterns = [
-                `${field}-${template}`,
-                `${field}-modern`,
-                field
-            ];
-            for (const pattern of patterns) {
-                const element = document.getElementById(pattern);
-                if (element) return element;
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'portrait': {
+                prefix: 'portrait',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
             }
-            return null;
         };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
 
         // Get all form data
         const formData = new FormData(form);
@@ -127,11 +141,17 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         // Update each field in the preview
-        Object.entries(fieldMappings).forEach(([inputName, previewField]) => {
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
             const value = formData.get(inputName) || '';
-            const templateElement = getTemplateElement(previewField);
-            if (templateElement) {
-                templateElement.textContent = value;
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
             }
         });
 
@@ -140,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (logoInput && logoInput.files && logoInput.files[0]) {
             const reader = new FileReader();
             reader.onload = () => {
-                const photoElement = getTemplateElement('photo') || getTemplateElement('logo');
+                const photoElement = document.getElementById(`photo-${prefix}`);
                 if (photoElement && photoElement.tagName === 'IMG') {
                     photoElement.src = reader.result;
                 }
@@ -151,17 +171,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Real-time preview update ---
     function bindFormInputs() {
-        // Bind to form inputs using event delegation
-        form.addEventListener('input', (event) => {
-            if (event.target.matches('input, textarea')) {
-                updatePreviewFields(currentTemplate);
-            }
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
         });
 
         // Special handling for file input
         const logoInput = document.getElementById('logo');
         if (logoInput) {
-            logoInput.addEventListener('change', () => updatePreviewFields(currentTemplate));
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape',
+                            'portrait': 'portrait'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = e.target.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
         }
     }
 
@@ -173,21 +213,32 @@ document.addEventListener('DOMContentLoaded', function() {
     templateSwitch.addEventListener('change', async function() {
         const template = this.value;
         currentTemplate = template;
+        document.getElementById('template-hidden').value = template;
+        
         try {
-            const response = await fetch(`/cards/templates/${template}`);
-            if (!response.ok) throw new Error('Failed to load template');
-            const html = await response.text();
+            const response = await fetch(`<?php echo e(route('cards.template.view', '')); ?>/${template}`);
+            const data = await response.json();
             
-            // Update the preview container
-            container.innerHTML = html;
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to load template');
+            }
             
-            // Update preview with current form data
-            requestAnimationFrame(() => {
-                updatePreviewFields(template);
-            });
+            if (data.success && data.html) {
+                // Update the preview container
+                container.innerHTML = data.html;
+                
+                // Update preview with current form data after template is loaded
+                setTimeout(() => {
+                    updatePreviewFields(template);
+                }, 100);
+            } else {
+                throw new Error(data.message || 'Invalid template data received');
+            }
         } catch (error) {
             console.error('Template loading error:', error);
-            alert('Failed to load template. Please try again.');
+            alert(error.message || 'Failed to load template. Please try again.');
+            // Reset to previous template
+            templateSwitch.value = currentTemplate;
         }
     });
 });
@@ -196,6 +247,13 @@ function handleCardFormSubmit(event) {
     event.preventDefault();
     const form = event.target;
     const formData = new FormData(form);
+    
+    // Show loading state
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Creating...';
+
     fetch(form.action, {
         method: 'POST',
         body: formData,
@@ -206,25 +264,24 @@ function handleCardFormSubmit(event) {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            return response.json().then(err => Promise.reject(err));
         }
         return response.json();
     })
     .then(data => {
         if (data.success && data.data) {
-            const cardId = data.data.card_id;
-            if (cardId) {
-                window.location.href = `/cards/${cardId}/a4-preview`;
-            } else {
-                alert('Failed to create card: No card ID returned');
-            }
+            // Redirect to preview page
+            window.location.href = `/cards/${data.data.id}/preview`;
         } else {
-            alert('Failed to create card. Please check your input.');
+            throw new Error(data.message || 'Failed to create card');
         }
     })
     .catch((error) => {
         console.error('Error:', error);
-        alert('An error occurred while submitting the form.');
+        alert(error.message || 'An error occurred while submitting the form.');
+        // Reset button state
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonText;
     });
     return false;
 }
