@@ -114,9 +114,124 @@ document.addEventListener('DOMContentLoaded', function() {
             'landscape': {
                 prefix: 'landscape',
                 fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
             },
-            'portrait': {
-                prefix: 'portrait',
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
                 fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
             }
         };
@@ -190,13 +305,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             'minimal': 'corporate',
                             'modern': 'modern',
                             'classic': 'corporate',
-                            'landscape': 'landscape',
-                            'portrait': 'portrait'
+                            'landscape': 'landscape'
                         };
                         const prefix = templateMappings[currentTemplate] || 'corporate';
                         const photoElement = document.getElementById(`photo-${prefix}`);
                         if (photoElement && photoElement.tagName === 'IMG') {
-                            photoElement.src = e.target.result;
+                            photoElement.src = reader.result;
                         }
                     };
                     reader.readAsDataURL(file);
@@ -205,85 +319,6244 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Initial setup
-    bindFormInputs();
+    // Initialize preview update
     updatePreviewFields(currentTemplate);
-
-    // Template switching
-    templateSwitch.addEventListener('change', async function() {
-        const template = this.value;
-        currentTemplate = template;
-        document.getElementById('template-hidden').value = template;
-        
-        try {
-            const response = await fetch(`{{ route('cards.template.view', '') }}/${template}`);
-            const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to load template');
-            }
-            
-            if (data.success && data.html) {
-                // Update the preview container
-                container.innerHTML = data.html;
-                
-                // Update preview with current form data after template is loaded
-                setTimeout(() => {
-                    updatePreviewFields(template);
-                }, 100);
-            } else {
-                throw new Error(data.message || 'Invalid template data received');
-            }
-        } catch (error) {
-            console.error('Template loading error:', error);
-            alert(error.message || 'Failed to load template. Please try again.');
-            // Reset to previous template
-            templateSwitch.value = currentTemplate;
-        }
-    });
+    bindFormInputs();
 });
-
-function handleCardFormSubmit(event) {
-    event.preventDefault();
-    const form = event.target;
-    const formData = new FormData(form);
-    
-    // Show loading state
-    const submitButton = form.querySelector('button[type="submit"]');
-    const originalButtonText = submitButton.innerHTML;
-    submitButton.disabled = true;
-    submitButton.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Creating...';
-
-    fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => Promise.reject(err));
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success && data.data) {
-            // Redirect to preview page
-            window.location.href = `/cards/${data.data.id}/preview`;
-        } else {
-            throw new Error(data.message || 'Failed to create card');
-        }
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-        alert(error.message || 'An error occurred while submitting the form.');
-        // Reset button state
-        submitButton.disabled = false;
-        submitButton.innerHTML = originalButtonText;
-    });
-    return false;
-}
 </script>
-@endsection
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter': 'twitter'
+        };
+
+        // Update each field in the preview
+        Object.entries(fieldMappings).forEach(([inputName, field]) => {
+            const value = formData.get(inputName) || '';
+            const elementId = `${field}-${prefix}`;
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+                if (element.tagName === 'A') {
+                    element.href = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        });
+
+        // Handle logo/photo
+        const logoInput = document.getElementById('logo');
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const photoElement = document.getElementById(`photo-${prefix}`);
+                if (photoElement && photoElement.tagName === 'IMG') {
+                    photoElement.src = reader.result;
+                }
+            };
+            reader.readAsDataURL(logoInput.files[0]);
+        }
+    }
+
+    // --- Real-time preview update ---
+    function bindFormInputs() {
+        // Bind to all form inputs
+        const formInputs = form.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => updatePreviewFields(currentTemplate));
+            input.addEventListener('change', () => updatePreviewFields(currentTemplate));
+        });
+
+        // Special handling for file input
+        const logoInput = document.getElementById('logo');
+        if (logoInput) {
+            logoInput.addEventListener('change', () => {
+                const file = logoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const templateMappings = {
+                            'minimal': 'corporate',
+                            'modern': 'modern',
+                            'classic': 'corporate',
+                            'landscape': 'landscape'
+                        };
+                        const prefix = templateMappings[currentTemplate] || 'corporate';
+                        const photoElement = document.getElementById(`photo-${prefix}`);
+                        if (photoElement && photoElement.tagName === 'IMG') {
+                            photoElement.src = reader.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Initialize preview update
+    updatePreviewFields(currentTemplate);
+    bindFormInputs();
+});
+</script>
+
+{{-- Scripts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSwitch = document.getElementById('template-switch');
+    const container = document.getElementById('template-preview-container');
+    const form = document.getElementById('card-form');
+    let currentTemplate = templateSwitch.value;
+
+    // --- Helper: Update preview fields with current form data ---
+    function updatePreviewFields(template) {
+        // Template-specific ID mappings
+        const templateMappings = {
+            'minimal': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'modern': {
+                prefix: 'modern',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'classic': {
+                prefix: 'corporate',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            },
+            'landscape': {
+                prefix: 'landscape',
+                fields: ['name', 'role', 'company', 'email', 'phone', 'website', 'address', 'linkedin', 'twitter', 'photo']
+            }
+        };
+
+        const currentMapping = templateMappings[template] || templateMappings['minimal'];
+        const prefix = currentMapping.prefix;
+
+        // Get all form data
+        const formData = new FormData(form);
+        
+        // Update text fields
+        const fieldMappings = {
+            'full_name': 'name',
+            'job_title': 'role',
+            'company_name': 'company',
+            'email': 'email',
+            'phone': 'phone',
+            'website': 'website',
+            'address': 'address',
+            'linkedin': 'linkedin',
+            'twitter
