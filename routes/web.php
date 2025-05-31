@@ -27,22 +27,34 @@ Route::middleware(['auth'])->group(function () {
         
         // Dynamic template preview
         Route::get('/templates/{template}', function ($template) {
-            $templateModel = \App\Models\Template::where('slug', $template)
-                ->where('is_active', true)
-                ->firstOrFail();
+            try {
+                $templateModel = \App\Models\Template::where('slug', $template)
+                    ->where('is_active', true)
+                    ->firstOrFail();
 
-            return view($templateModel->view_path, [
-                'full_name' => '',
-                'job_title' => '',
-                'company_name' => '',
-                'email' => '',
-                'phone' => '',
-                'website' => '',
-                'address' => '',
-                'linkedin' => '',
-                'twitter' => '',
-                'logoUrl' => null
-            ]);
+                $view = view("cards.templates.{$template}", [
+                    'full_name' => '',
+                    'job_title' => '',
+                    'company_name' => '',
+                    'email' => '',
+                    'phone' => '',
+                    'website' => '',
+                    'address' => '',
+                    'linkedin' => '',
+                    'twitter' => '',
+                    'logoUrl' => null
+                ])->render();
+
+                return response()->json([
+                    'success' => true,
+                    'html' => $view
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to load template: ' . $e->getMessage()
+                ], 404);
+            }
         })->name('template.view');
 
         // Card resource routes
@@ -50,8 +62,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{card}/edit', [BusinessCardController::class, 'edit'])->name('edit');
         Route::put('/{card}', [BusinessCardController::class, 'update'])->name('update');
         Route::delete('/{card}', [BusinessCardController::class, 'destroy'])->name('destroy');
-        // A4 preview
-        Route::get('/{card}/a4-preview', [BusinessCardController::class, 'a4Preview'])->name('a4-preview');
+        
+       
+        // Preview
+        Route::get('/{id}/preview', [BusinessCardController::class, 'preview'])->name('preview');
     });
 
     // Admin and Super Admin routes
