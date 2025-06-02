@@ -231,19 +231,6 @@
                             </a>
                         </li>
 
-                        <!-- Templates Section -->
-                        <?php if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('super-admin')): ?>
-                        <li class="nav-item mt-3">
-                            <span class="nav-header text-uppercase text-white-50 small d-block py-2 px-3">Templates</span>
-                        </li>
-                        <li class="nav-item">
-                            <a href="<?php echo e(route('templates.index')); ?>" class="nav-link text-white d-flex align-items-center <?php echo e(request()->routeIs('templates.*') ? 'active' : ''); ?>">
-                                <i class="bi bi-grid-3x3-gap me-3" style="width: 20px; text-align: center;"></i>
-                                <span>Manage Templates</span>
-                            </a>
-                        </li>
-                        <?php endif; ?>
-
                         <!-- Admin Section -->
                         <?php if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('super-admin')): ?>
                         <li class="nav-item mt-3">

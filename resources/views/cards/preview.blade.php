@@ -1,7 +1,7 @@
 @extends('layouts.app-dashboard')
 @section('content')
 
-<div class="container px-4 py-6">
+<div class="container-fluid px-4 py-6">
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -16,11 +16,13 @@
                         </a>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-center align-items-center" style="min-height: 400px;">
-                        <div id="card-container" style="transform: scale(1); width: 350px; height: 200px; overflow: hidden;">
-                            @include("cards.templates.{$card->template}", $data)
-                        </div>
+                <div class="card-body preview-container" style="background: #f8fafc; border-radius: 12px; min-height: 500px; display: flex; align-items: center; justify-content: center;">
+                    <div id="card-container" class="card-wrapper" style="width: 100%; max-width: 842px; aspect-ratio: 842/595; position: relative; transform-origin: center center;">
+                        @if($card->template === 'landscape')
+                            @include('cards.templates.landscape', $data)
+                        @else
+                            @include('cards.templates.portrait', $data)
+                        @endif
                     </div>
                 </div>
             </div>
@@ -28,9 +30,8 @@
     </div>
 </div>
 
-<!-- Overlay for PDF export (off-screen but visible) -->
-<div id="pdf-overlay"
-     style="position: absolute; top: 0; left: 0; width: 350px; height: 200px; background: #fff; z-index: 99999; box-shadow: none; overflow: hidden; visibility: hidden;">
+<!-- Overlay for PDF export -->
+<div id="pdf-overlay" class="pdf-overlay" style="position: absolute; width: 595px; height: 842px; background: #fff; z-index: 99999; visibility: hidden;">
     @include("cards.templates.{$card->template}", $data)
 </div>
 
@@ -39,10 +40,98 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
+<style>
+.preview-container {
+    transition: all 0.3s ease;
+    min-height: 80vh; /* Make preview area taller */
+    background: #f8fafc;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.card-wrapper {
+    width: 100%;
+    max-width: 595px;
+    aspect-ratio: 595 / 842;
+    position: relative;
+    transform-origin: center center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .preview-container {
+        min-height: 400px;
+    }
+}
+
+/* A4 Page Styles */
+.a4-page {
+    width: 595px;
+    height: 842px;
+    background: white;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Print Styles */
+@media print {
+    .preview-container {
+        background: none;
+        padding: 0;
+    }
+    
+    .card-wrapper {
+        transform: none !important;
+        max-width: none;
+    }
+}
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const downloadButton = document.getElementById('download-pdf');
     const pdfOverlay = document.getElementById('pdf-overlay');
+    const cardContainer = document.getElementById('card-container');
+    const previewArea = cardContainer.parentElement;
+
+    // Function to handle image loading
+    async function loadImages(element) {
+        const images = element.querySelectorAll('img');
+        await Promise.all(Array.from(images).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise(resolve => { img.onload = img.onerror = resolve; });
+        }));
+    }
+
+    // Function to ensure proper scaling
+    function adjustScale() {
+        const areaWidth = previewArea.clientWidth;
+        const areaHeight = previewArea.clientHeight;
+        const cardWidth = 595; // A4 width in px
+        const cardHeight = 842; // A4 height in px
+        // Calculate scale based on container size while maintaining aspect ratio
+        const scaleX = areaWidth / cardWidth;
+        const scaleY = areaHeight / cardHeight;
+        const scale = Math.min(scaleX, scaleY, 1); // Don't upscale beyond 1
+        cardContainer.style.transform = `scale(${scale})`;
+        cardContainer.style.height = cardHeight + 'px';
+        cardContainer.style.width = cardWidth + 'px';
+    }
+
+    // Initial scale adjustment
+    adjustScale();
+    
+    // Debounced resize handler
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(adjustScale, 250);
+    });
 
     downloadButton.addEventListener('click', async function() {
         try {
@@ -56,26 +145,28 @@ document.addEventListener('DOMContentLoaded', function() {
             pdfOverlay.style.left = '0';
 
             // Wait for images to load
-            const images = pdfOverlay.querySelectorAll('img');
-            await Promise.all(Array.from(images).map(img => {
-                if (img.complete) return Promise.resolve();
-                return new Promise(resolve => { img.onload = img.onerror = resolve; });
-            }));
+            await loadImages(pdfOverlay);
+
+            // Get template-specific settings
+            const template = '{{ $card->template }}';
+            let backgroundColor = '#ffffff';
+            let quality = 1;
+            let scale = 2;
 
             // PDF options
             const opt = {
                 margin: 0,
                 filename: '{{ $card->full_name }}-business-card.pdf',
-                image: { type: 'jpeg', quality: 1 },
+                image: { type: 'jpeg', quality: quality },
                 html2canvas: { 
-                    scale: 2,
+                    scale: scale,
                     useCORS: true,
                     logging: true,
-                    backgroundColor: '#ffffff',
-                    width: 350,
-                    height: 200,
-                    windowWidth: 350,
-                    windowHeight: 200,
+                    backgroundColor: backgroundColor,
+                    width: 595,
+                    height: 842,
+                    windowWidth: 595,
+                    windowHeight: 842,
                     x: 0,
                     y: 0,
                     scrollX: 0,
@@ -89,13 +180,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             cardContainer.style.margin = '0';
                             cardContainer.style.padding = '0';
                             cardContainer.style.visibility = 'visible';
+                            cardContainer.style.background = backgroundColor;
                         }
                     }
                 },
                 jsPDF: { 
                     unit: 'px', 
-                    format: [350, 200],
-                    orientation: 'landscape',
+                    format: 'a4',
+                    orientation: 'portrait',
                     compress: true
                 }
             };

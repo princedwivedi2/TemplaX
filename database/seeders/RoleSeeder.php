@@ -3,29 +3,35 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class RoleSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
     public function run()
     {
-        // Assign roles dynamically if needed
-        $roles = ['super-admin', 'admin', 'user'];
-        foreach ($roles as $role) {
-            Role::firstOrCreate(['name' => $role]);
-        }
+        $roles = [
+            [
+                'name' => 'Super Admin',
+                'slug' => 'super-admin',
+                'description' => 'Super Administrator with full access to all features',
+            ],
+            [
+                'name' => 'Admin',
+                'slug' => 'admin',
+                'description' => 'Administrator with access to most features',
+            ],
+            [
+                'name' => 'User',
+                'slug' => 'user',
+                'description' => 'Regular user with basic access',
+            ],
+        ];
 
-        // Assign roles to users (assuming user with ID 1 exists)
-        $user = User::find(1);
-        if ($user) {
-            $user->assignRole('super-admin');
+        foreach ($roles as $role) {
+            DB::table('roles')->updateOrInsert(
+                ['slug' => $role['slug']],
+                $role
+            );
         }
     }
-}
+} 

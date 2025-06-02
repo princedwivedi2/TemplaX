@@ -8,10 +8,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -23,6 +24,9 @@ class User extends Authenticatable
         'email',
         'organization',
         'password',
+        'phone',
+        'avatar',
+        'is_active',
     ];
 
     /**
@@ -42,7 +46,16 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_active' => 'boolean',
     ];
+
+    /**
+     * The roles that belong to the user.
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class);
+    }
 
     /**
      * Get all business cards belonging to the user.
@@ -50,5 +63,37 @@ class User extends Authenticatable
     public function businessCards()
     {
         return $this->hasMany(BusinessCard::class);
+    }
+
+    /**
+     * Check if user has a specific role
+     */
+    public function hasRole($role)
+    {
+        return $this->roles->contains('slug', $role);
+    }
+
+    /**
+     * Check if user has a specific permission through their roles
+     */
+    public function hasPermission($permission)
+    {
+        return $this->roles->flatMap->permissions->contains('slug', $permission);
+    }
+
+    /**
+     * Get all permissions for the user through their roles
+     */
+    public function getAllPermissions()
+    {
+        return $this->roles->flatMap->permissions->unique('id');
+    }
+
+    /**
+     * Check if user is active
+     */
+    public function isActive()
+    {
+        return $this->is_active;
     }
 }

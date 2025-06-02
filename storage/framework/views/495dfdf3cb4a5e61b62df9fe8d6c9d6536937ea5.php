@@ -1,10 +1,10 @@
-@extends('layouts.app-dashboard')
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 
 <div class="container px-4 py-6">
     <div class="row">
         <div class="col-12">
-            {{-- Template Switcher --}}
+            
             <div class="mb-4">
                 <label for="template-switch" class="form-label fw-medium">Choose a Template:</label>
                 <select id="template-switch" class="form-select" style="max-width: 300px;">
@@ -17,26 +17,26 @@
     </div>
 
     <div class="row">
-        {{-- Preview (Left Side) --}}
+        
         <div class="col-12 col-lg-6 mb-4 mb-lg-0">
             <div class="card h-100">
                 <div class="card-body d-flex align-items-center justify-content-center" style="background: #f8fafc; border-radius: 12px; display: flex; align-items: center; justify-content: center; height: 900px; min-height: 900px;">
                     <div id="template-preview-container" class="card-wrapper" style="width: 100%; max-width: 842px; aspect-ratio: 842/595; position: relative; transform-origin: center center;">
-                        <div id="portrait-template" class="template-variant">@include('cards.templates.portrait')</div>
-                        <div id="landscape-template" class="template-variant" style="display:none;">@include('cards.templates.landscape')</div>
-                        <div id="elegant-template" class="template-variant" style="display:none;">@include('cards.templates.elegant')</div>
+                        <div id="portrait-template" class="template-variant"><?php echo $__env->make('cards.templates.portrait', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?></div>
+                        <div id="landscape-template" class="template-variant" style="display:none;"><?php echo $__env->make('cards.templates.landscape', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?></div>
+                        <div id="elegant-template" class="template-variant" style="display:none;"><?php echo $__env->make('cards.templates.elegant', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- Form (Right Side) --}}
+        
         <div class="col-12 col-lg-6">
             <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title mb-4">Business Card Information</h5>
-                    <form id="card-form" class="row g-3" method="POST" action="{{ route('cards.store') }}" enctype="multipart/form-data">
-                        @csrf
+                    <form id="card-form" class="row g-3" method="POST" action="<?php echo e(route('cards.store')); ?>" enctype="multipart/form-data">
+                        <?php echo csrf_field(); ?>
                         <div class="col-12">
                             <label for="full_name" class="form-label">Full Name</label>
                             <input type="text" id="full_name" name="full_name" placeholder="Enter your full name" class="form-control">
@@ -108,7 +108,7 @@
     </div>
 </div>
 
-{{-- Scripts --}}
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const templateSwitch = document.getElementById('template-switch');
@@ -211,4 +211,5 @@ document.addEventListener('DOMContentLoaded', function() {
     justify-content: center;
 }
 </style>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app-dashboard', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\wamp64\www\TemplaX\resources\views/cards/create.blade.php ENDPATH**/ ?>

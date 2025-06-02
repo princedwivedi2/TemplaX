@@ -16,20 +16,23 @@ class BusinessCard extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'card_id',
         'user_id',
         'full_name',
         'job_title',
+        'company_name',
         'email',
         'phone',
-        'company_name',
         'website',
         'address',
         'linkedin',
         'twitter',
-        'template',
         'logo_path',
-        'status'
+        'template',
+        'background_image',
+        'instagram',
+        'facebook',
+        'whatsapp',
+        'navigate'
     ];
 
     /**
@@ -59,13 +62,17 @@ class BusinessCard extends Model
     /**
      * Scope to get all cards for a specific user or all cards for super admin
      */
-    public function scopeForUser($query, $user)
+    public function scopeForUser($query, $userId)
     {
-        if ($user->hasRole('super-admin')) {
-            return $query->with('user');
-        }
+        return $query->where('user_id', $userId);
+    }
 
-        return $query->where('user_id', $user->id);
+    /**
+     * Scope a query to only include cards with a specific template.
+     */
+    public function scopeWithTemplate($query, $template)
+    {
+        return $query->where('template', $template);
     }
 
     /**
@@ -95,10 +102,24 @@ class BusinessCard extends Model
     }
 
     /**
-     * Use card_id for route model binding
+     * Get the template-specific data
      */
-    public function getRouteKeyName()
+    public function getTemplateData()
     {
-        return 'card_id';
+        $data = $this->toArray();
+        
+        // Add template-specific data
+        switch ($this->template) {
+            case 'elegant':
+                $data['social_links'] = [
+                    'instagram' => $this->instagram,
+                    'facebook' => $this->facebook,
+                    'whatsapp' => $this->whatsapp,
+                    'navigate' => $this->navigate,
+                ];
+                break;
+        }
+
+        return $data;
     }
 }
